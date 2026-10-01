@@ -1,0 +1,12 @@
+node_modules
+dist
+dev-dist
+.env
+.env.local
+.env.*.local
+*.log
+.vercel
+supabase/.temp
+supabase/.branches
+.DS_Store
+seed-demo.sql
