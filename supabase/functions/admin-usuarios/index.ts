@@ -9,7 +9,8 @@ const CORS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
+// CLAVE_SERVICIO: la clave secreta del proyecto (ver congelar-costos).
+const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('CLAVE_SERVICIO') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
   auth: { persistSession: false, autoRefreshToken: false },
 })
 

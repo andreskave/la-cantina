@@ -56,16 +56,15 @@ export function crearMemoriaApi(d: DatosMemoria, rol: () => Rol): Api {
   /** Como precio_producto de la base: la lista pedida y, si no tiene, la General. */
   const precioProducto = (producto: string, lista: string, fecha: string) => vigenteEn(producto, lista, fecha) ?? vigenteEn(producto, general(), fecha)
   /** Como precio_menu de la base (con el módulo precio_por_plato). */
+  /** Como precio_menu de la base: plato en la lista → menú en la lista → plato General → menú General. */
   const precioMenu = (fecha: string, lista: string) => {
     const menu = d.productos.find((p) => p.tipo === 'menu')!
-    if (d.config.modulos.precio_por_plato) {
-      const dia = d.menu.find((m) => m.fecha === fecha && !m.sin_cocina)
-      const prodPlato = dia?.plato_receta_id ? d.productos.find((p) => p.receta_id === dia.plato_receta_id && p.activo) : undefined
-      const pp = prodPlato ? precioProducto(prodPlato.id, lista, fecha) : null
-      if (pp) return pp
-    }
-    return precioProducto(menu.id, lista, fecha)
+    const dia = d.config.modulos.precio_por_plato ? d.menu.find((m) => m.fecha === fecha && !m.sin_cocina) : undefined
+    const plato = dia?.plato_receta_id ? d.productos.find((p) => p.receta_id === dia.plato_receta_id && p.activo) : undefined
+    return (plato ? vigenteEn(plato.id, lista, fecha) : null) ?? vigenteEn(menu.id, lista, fecha)
+      ?? (plato ? vigenteEn(plato.id, general(), fecha) : null) ?? vigenteEn(menu.id, general(), fecha)
   }
+
   const listaDeAlumno = (alumno: string) => {
     const a = d.alumnos.find((x) => x.id === alumno)
     return d.config.modulos.listas_precio && a?.lista_id ? a.lista_id : general()

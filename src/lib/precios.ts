@@ -12,15 +12,16 @@ export const listaCobro = (modulos: Pick<Modulos, 'listas_precio'>, listaAlumno:
 export const precioEnLista = (p: ConPrecios | undefined, lista: string | null) =>
   (lista ? p?.precios_lista?.[lista] : undefined) ?? p?.precio_cent ?? null
 
-/** Precio del menú de un día: con precio_por_plato, el del plato si tiene; si no, el del menú. */
+/**
+ * Precio del menú de un día para una lista (como precio_menu de la base):
+ * plato en la lista → menú en la lista → plato en la General → menú en la General.
+ * Lo del plato, solo con el módulo precio_por_plato.
+ */
 export function precioMenuDia(
   productos: ConPrecios[], modulos: Pick<Modulos, 'precio_por_plato'>, platoRecetaId: string | null, lista: string | null,
 ): number | null {
   const menu = productos.find((p) => p.tipo === 'menu')
-  if (modulos.precio_por_plato && platoRecetaId) {
-    const delPlato = productos.find((p) => p.receta_id === platoRecetaId && p.activo)
-    const x = precioEnLista(delPlato, lista)
-    if (x) return x
-  }
-  return precioEnLista(menu, lista)
+  const plato = modulos.precio_por_plato && platoRecetaId ? productos.find((p) => p.receta_id === platoRecetaId && p.activo) : undefined
+  const enLista = (p: ConPrecios | undefined) => (lista ? p?.precios_lista?.[lista] : undefined)
+  return enLista(plato) ?? enLista(menu) ?? plato?.precio_cent ?? menu?.precio_cent ?? null
 }

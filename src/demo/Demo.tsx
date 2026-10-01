@@ -68,6 +68,7 @@ export default function Demo() {
       elegirCantina: () => {},
       recargar: async () => setVersion((v) => v + 1),
       salir: async () => elegir(null),
+      cambiarClave: async () => {},
     }
     // version fuerza a releer datos.cantina después de "Guardar" en Ajustes
   }, [rol, datos, version, modulos])

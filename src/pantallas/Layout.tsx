@@ -7,7 +7,9 @@ import { Icono } from '../componentes/Icono'
 import { Hoja } from '../componentes/Hoja'
 import { BotonBorrar } from '../componentes/Controles'
 import { ROL_TXT } from './ElegirCantina'
-import { ColaProvider, Precarga, useCola } from '../offline/Conexion'
+import { AvisoSinConexion, ColaProvider, Precarga, useCola, useEnLinea } from '../offline/Conexion'
+import { useToast } from '../componentes/Toast'
+import { mensajeError } from '../lib/errores'
 import { IndicadorConexion } from '../offline/Indicador'
 
 export const PESTANAS: Record<Pestana, string> = {
@@ -91,6 +93,7 @@ function HojaSesion({ onCerrar }: { onCerrar: () => void }) {
           ))}
         </div>
       )}
+      <CambiarClave />
       {pendientes > 0 ? (
         <>
           <p className="warnbox">
@@ -113,4 +116,53 @@ export function RequierePestana({ pestana, children }: { pestana: Pestana; child
 export function RequiereAccion({ accion, children }: { accion: Accion; children: ReactNode }) {
   const { puede } = useCantina()
   return puede(accion) ? <>{children}</> : <Navigate to="/hoy" replace />
+}
+
+/** Cada usuario cambia su propia contraseña (por ejemplo, la temporal que le dio el administrador). */
+function CambiarClave() {
+  const { cambiarClave } = useSesion()
+  const toast = useToast()
+  const enLinea = useEnLinea()
+  const [abierto, setAbierto] = useState(false)
+  const [nueva, setNueva] = useState('')
+  const [repetida, setRepetida] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function onGuardar() {
+    if (nueva.length < 8) return setError('Usá al menos 8 caracteres.')
+    if (nueva !== repetida) return setError('Las dos contraseñas no coinciden.')
+    setError(null)
+    setGuardando(true)
+    try {
+      await cambiarClave(nueva)
+      toast('Contraseña cambiada')
+      setAbierto(false); setNueva(''); setRepetida('')
+    } catch (e) {
+      setError(mensajeError(e))
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  if (!abierto) return <button className="btn ghost" onClick={() => setAbierto(true)}>Cambiar mi contraseña</button>
+  return (
+    <div className="card stack">
+      <p className="lbl">Cambiar mi contraseña</p>
+      <div className="field">
+        <label htmlFor="cn1" className="small">Contraseña nueva</label>
+        <input id="cn1" className="inp" type="password" autoComplete="new-password" value={nueva} onChange={(e) => setNueva(e.target.value)} />
+      </div>
+      <div className="field">
+        <label htmlFor="cn2" className="small">Repetila</label>
+        <input id="cn2" className="inp" type="password" autoComplete="new-password" value={repetida} onChange={(e) => setRepetida(e.target.value)} />
+      </div>
+      <AvisoSinConexion que="cambiar la contraseña" />
+      {error && <p className="error" role="alert">{error}</p>}
+      <div className="grid2">
+        <button className="btn ghost" onClick={() => { setAbierto(false); setError(null) }}>Cancelar</button>
+        <button className="btn" onClick={() => void onGuardar()} disabled={guardando || !enLinea}>{guardando ? 'Guardando…' : 'Guardar'}</button>
+      </div>
+    </div>
+  )
 }

@@ -21,4 +21,10 @@ describe('precios por lista y por plato', () => {
     expect(precioMenuDia(productos, { precio_por_plato: true }, 'guiso', null)).toBe(26000)
     expect(precioMenuDia(productos, { precio_por_plato: false }, 'mila', 'gra')).toBe(32000)
   })
+  it('con listas: si el plato no tiene precio en la lista, vale el menú de esa lista', () => {
+    expect(precioMenuDia(productos, { precio_por_plato: true }, 'mila', 'gra')).toBe(32000)
+    expect(precioMenuDia(productos, { precio_por_plato: true }, 'mila', 'gen')).toBe(30000)
+    const conPlatoGrande = productos.map((p) => (p.id === 'p' ? { ...p, precios_lista: { ...p.precios_lista, gra: 35000 } } : p))
+    expect(precioMenuDia(conPlatoGrande, { precio_por_plato: true }, 'mila', 'gra')).toBe(35000)
+  })
 })

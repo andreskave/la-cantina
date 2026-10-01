@@ -8,6 +8,8 @@ export function mensajeError(e: unknown): string {
   if (/email not confirmed/i.test(msg)) return 'Tu usuario todavía no está activado. Pedile al administrador que lo revise.'
   if (/failed to fetch|networkerror|load failed|fetch failed/i.test(msg))
     return 'No hay conexión con el servidor. Revisá internet y probá de nuevo.'
+  if (/should be different from the old password/i.test(msg)) return 'La contraseña nueva tiene que ser distinta de la que tenés.'
+  if (/password should be at least|weak password/i.test(msg)) return 'La contraseña es muy corta o muy fácil. Usá al menos 8 caracteres.'
   if (/rate limit|too many requests/i.test(msg)) return 'Hubo demasiados intentos seguidos. Esperá un minuto y probá de nuevo.'
   if (/row-level security|permission denied/i.test(msg))
     return 'No tenés permiso para hacer esto. Si te parece un error, hablá con la dueña.'

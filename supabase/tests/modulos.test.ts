@@ -73,6 +73,19 @@ describe('precio por plato', () => {
     await modulos({ precio_por_plato: false })
     expect(await importe(await consumo(a, menu, '2026-10-07'))).toBe(26000)
   })
+
+  it('con listas también: si el plato no tiene precio en la lista, vale el precio del menú de esa lista', async () => {
+    await modulos({ listas_precio: true, precio_por_plato: true })
+    const general = await nuevoAlumno('Plato General')
+    const grande = await nuevoAlumno('Plato Grande', grandes)
+    expect(await importe(await consumo(general, menu, '2026-10-07'))).toBe(30000)   // plato en General
+    expect(await importe(await consumo(grande, menu, '2026-10-07'))).toBe(32000)    // menú de Grandes, no el plato General
+    // Si el plato tiene precio propio en Grandes, vale ese.
+    const prodMila = (await uno<{ id: string }>(`select id from productos_venta where receta_id=$1`, [milanesa])).id
+    await db.como(duena, () => db.query(`insert into precios_venta (cantina_id, producto_id, lista_id, precio_cent, vigente_desde) values ($1,$2,$3,35000,'2026-01-01')`, [cantina, prodMila, grandes]))
+    expect(await importe(await consumo(grande, menu, '2026-10-07'))).toBe(35000)
+    await modulos({ listas_precio: false, precio_por_plato: false })
+  })
 })
 
 describe('días fijos', () => {

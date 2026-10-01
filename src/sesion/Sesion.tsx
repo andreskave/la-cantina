@@ -32,6 +32,8 @@ type Ctx = {
   elegirCantina: (id: string | null) => void
   recargar: () => Promise<void>
   salir: () => Promise<void>
+  /** Cambia la contraseña del usuario logueado. */
+  cambiarClave: (nueva: string) => Promise<void>
 }
 
 export const SesionCtx = createContext<Ctx | null>(null)
@@ -155,7 +157,12 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     elegirCantina(null)
   }, [elegirCantina, qc])
 
-  const valor = useMemo(() => ({ estado, cantinaActiva, elegirCantina, recargar, salir }), [estado, cantinaActiva, elegirCantina, recargar, salir])
+  const cambiarClave = useCallback(async (nueva: string) => {
+    const { error } = await supabase.auth.updateUser({ password: nueva })
+    if (error) throw error
+  }, [])
+
+  const valor = useMemo(() => ({ estado, cantinaActiva, elegirCantina, recargar, salir, cambiarClave }), [estado, cantinaActiva, elegirCantina, recargar, salir, cambiarClave])
   return <SesionCtx.Provider value={valor}>{children}</SesionCtx.Provider>
 }
 

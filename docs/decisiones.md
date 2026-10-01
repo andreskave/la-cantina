@@ -209,9 +209,9 @@ Lo marcado **A confirmar** espera una respuesta.
     General. El editor del día muestra además costo, precio y ganancia de cada lista, y el cierre del día calcula
     lista por lista.
 73. **Precio por plato:** el menú se cobra al precio de venta del plato del día si lo tiene; si no, al precio del
-    menú. Combinado con listas, un plato sin precio propio en "Grandes" se cobra a su precio General (no al
-    precio del menú de Grandes). **A confirmar.** Para la ganancia de días pasados se usa el precio actual del
-    plato (el del menú sí tiene historial).
+    menú. **Con listas (confirmado):** plato en la lista del alumno → menú de esa lista → plato en la General →
+    menú en la General. O sea, un alumno de "Grandes" paga el menú de Grandes si el plato no tiene precio para
+    Grandes (migración 13). Para la ganancia de días pasados se usa el precio actual del plato.
 74. **Días fijos:** un cron anota el menú a las 9:00 de Montevideo de lunes a viernes (migración 12, dentro de la
     base). No anota si ese día no se cocina, si no hay menú o si el alumno ya tiene un menú anotado, y no
     duplica si se corre dos veces. La Dueña puede forzarlo con "Días fijos de hoy" en Cuentas.
@@ -222,3 +222,14 @@ Lo marcado **A confirmar** espera una respuesta.
 77. **Exportar todo** lo pueden usar la Dueña y el Administrador; necesita conexión.
 78. **Funciones `security definer`:** para saber si las llama un usuario de la app se usa `auth.uid()`, no
     `current_user` (que adentro de esas funciones es el dueño). Se encontró y corrigió en `anotar_dias_fijos`.
+
+## Despliegue
+
+79. **Claves nuevas de Supabase** (`sb_publishable_…` y `sb_secret_…`): las Edge Functions usan el secreto
+    `CLAVE_SERVICIO` (cargado con `supabase secrets set`, con el valor de la clave secreta) y, si no está, la
+    service role de antes. El cron manda la clave solo en `Authorization`: si además va otra clave en `apikey`,
+    Supabase rechaza el pedido por "claves en conflicto".
+80. Los secretos de Vault (`project_url` y `service_role_key`) se cargaron por conexión directa a la base, sin
+    pegar la clave en el SQL editor.
+81. **Cambiar mi contraseña:** cada usuario puede cambiar la suya desde "Tu sesión" (por ejemplo, la temporal
+    que le dio el administrador).

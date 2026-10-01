@@ -12,7 +12,9 @@ import { hoyISO } from '../../../src/lib/formato.ts'
 type Resultado = { cantina: string; fecha: string; estado: 'congelado' | 'ya_estaba' | 'sin_costear' | 'sin_menu' }
 
 Deno.serve(async (req) => {
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  // CLAVE_SERVICIO: la clave secreta del proyecto (sirve con las claves nuevas sb_secret_ y
+  // con la service role JWT de antes). Se configura con supabase secrets set.
+  const serviceKey = Deno.env.get('CLAVE_SERVICIO') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   if (req.headers.get('Authorization') !== `Bearer ${serviceKey}`) {
     return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401 })
   }
