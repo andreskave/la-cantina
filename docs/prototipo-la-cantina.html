@@ -1,0 +1,946 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}body{margin:0}</style></head><body>
+<title>Libreta de Cantina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Layout: app de una columna para celular/tablet, barra inferior con 6 pantallas, hojas que suben desde abajo para editar */
+:root{
+  --bg:#F3F5EF; --surface:#FFFFFF; --sunk:#E9EDE4; --ink:#1C2620; --muted:#5B6860; --line:#D8DFD4;
+  --accent:#2E6A4E; --accent-ink:#FFFFFF; --accent-soft:#E0EEE5;
+  --sun:#E2A72E; --sun-soft:#FBF0D6; --warn:#B8542C; --warn-soft:#F8E4DA; --ok:#2E7D4F; --ok-soft:#DFF0E4;
+  --f-display:"Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:14px; --nav-h:64px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#111713; --surface:#18201B; --sunk:#0D120F; --ink:#E6EEE8; --muted:#9AA9A0; --line:#29342D;
+  --accent:#6FC098; --accent-ink:#0E1A13; --accent-soft:#1D3127;
+  --sun:#E9B74E; --sun-soft:#3A2F17; --warn:#E5835B; --warn-soft:#3A2219; --ok:#6FC098; --ok-soft:#1D3127; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#111713; --surface:#18201B; --sunk:#0D120F; --ink:#E6EEE8; --muted:#9AA9A0; --line:#29342D;
+  --accent:#6FC098; --accent-ink:#0E1A13; --accent-soft:#1D3127;
+  --sun:#E9B74E; --sun-soft:#3A2F17; --warn:#E5835B; --warn-soft:#3A2219; --ok:#6FC098; --ok-soft:#1D3127; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+body.lock{overflow:hidden}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:0 calc(var(--nav-h) + 32px + env(safe-area-inset-bottom,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:1.5rem;font-weight:800}
+h2{font-size:1.25rem;font-weight:800}
+h3{font-size:1.05rem;font-weight:600}
+p{margin:0}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:.875rem}
+.eyebrow{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;gap:12px;padding-block:14px 10px}
+.top .brand{flex:1;min-width:0}
+.top .brand p{font-size:.8rem;color:var(--muted)}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:12px;width:44px;height:44px;display:grid;place-items:center}
+.iconbtn svg{width:22px;height:22px}
+.banner{background:var(--sun-soft);border-radius:12px;padding:10px 14px;font-size:.875rem;margin-bottom:12px}
+
+/* bottom nav */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
+.nav button{border:0;background:none;height:var(--nav-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:.72rem;color:var(--muted);font-weight:700}
+.nav button svg{width:24px;height:24px}
+.nav button[aria-current="page"]{color:var(--accent)}
+.nav button[aria-current="page"] svg{stroke-width:2.4}
+
+/* generic */
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;align-items:center;gap:10px}
+.row.wrap-r{flex-wrap:wrap}
+.spread{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;background:var(--accent);color:var(--accent-ink);min-height:48px}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:var(--warn-soft);color:var(--warn)}
+.btn.danger.armed{background:var(--warn);color:#fff}
+.btn.sm{min-height:40px;padding:8px 12px;font-size:.9rem}
+.btn:disabled{opacity:.5}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:700;font-size:.9rem;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 9px;font-size:.78rem;font-weight:700;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.sun{background:var(--sun-soft);color:var(--ink)}
+.pill.mute{background:var(--sunk);color:var(--muted)}
+.empty{border:2px dashed var(--line);border-radius:var(--r);padding:22px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:12px;align-items:center}
+.fab{position:fixed;right:max(16px, calc(50% - 364px));bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom,0px));z-index:9;border:0;border-radius:18px;background:var(--accent);color:var(--accent-ink);font-weight:700;padding:14px 20px;box-shadow:0 6px 18px rgba(0,0,0,.18);display:flex;gap:8px;align-items:center}
+.fab svg{width:20px;height:20px}
+
+/* HOY */
+.hero{background:var(--accent);color:var(--accent-ink);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.hero .eyebrow{color:inherit;opacity:.8}
+.hero .dish{font-family:var(--f-display);font-weight:800;font-size:1.7rem;line-height:1.1}
+.hero .dessert{font-size:1.05rem;opacity:.92}
+.hero .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid color-mix(in srgb, var(--accent-ink) 25%, transparent);padding-top:12px}
+.hero .stats b{display:block;font-size:1.2rem;font-variant-numeric:tabular-nums}
+.hero .stats span{font-size:.78rem;opacity:.85}
+.hero.vacio{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.hero .btn{background:var(--accent-ink);color:var(--accent);align-self:flex-start}
+.hero.vacio .btn{background:var(--accent);color:var(--accent-ink)}
+.list{display:flex;flex-direction:column}
+.list > .li{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.list > .li:first-child{border-top:0}
+.li .main{flex:1;min-width:0}
+.li .main b{display:block;overflow-wrap:anywhere}
+.li .side{text-align:right;white-space:nowrap}
+button.li{background:none;border:0;text-align:left;width:100%;color:inherit}
+.datebox{width:48px;flex:none;text-align:center;border-radius:10px;background:var(--sunk);padding:4px 0;line-height:1.1}
+.datebox b{font-size:1.15rem;display:block}
+.datebox span{font-size:.7rem;text-transform:uppercase;color:var(--muted);font-weight:700}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.kpi b{font-size:1.35rem;font-family:var(--f-display);font-variant-numeric:tabular-nums;display:block}
+.kpi span{font-size:.8rem;color:var(--muted)}
+.up{color:var(--warn);font-weight:700}
+.down{color:var(--ok);font-weight:700}
+
+/* MENU calendar */
+.monthbar{display:flex;align-items:center;gap:8px}
+.monthbar h2{flex:1;text-align:center;text-transform:capitalize}
+.cal{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.cal .dow{font-size:.72rem;font-weight:700;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.06em}
+.cell{min-height:112px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:3px;text-align:left;min-width:0}
+.cell.blank{background:transparent;border-style:dashed;opacity:.4}
+.cell.today{border:2px solid var(--sun);background:var(--sun-soft)}
+.cell.closed{background:var(--sunk)}
+.cell .dn{font-weight:700;font-size:.85rem}
+.cell .p{font-size:.78rem;font-weight:700;line-height:1.2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:break-word;hyphens:auto}
+.cell .d{font-size:.72rem;color:var(--muted);line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.cell .c{margin-top:auto;font-size:.7rem;font-weight:700;font-variant-numeric:tabular-nums}
+.cell .c.warn{color:var(--warn)}
+.cell .c.ok{color:var(--ok)}
+.cell .add{margin:auto;color:var(--muted);font-size:1.4rem;line-height:1}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+
+/* forms & sheet */
+.field{display:flex;flex-direction:column;gap:6px}
+.field > label, .lbl{font-weight:700;font-size:.9rem}
+.hint{font-size:.8rem;color:var(--muted)}
+.inp{width:100%;min-height:48px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;font-size:1rem}
+select.inp{appearance:auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;background:var(--sunk);border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;border-radius:9px;padding:10px 6px;font-weight:700;font-size:.9rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.switch{display:flex;align-items:center;gap:12px;padding:10px 0}
+.switch input{width:24px;height:24px;accent-color:var(--accent)}
+.sheet{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.sheet .scrim{position:absolute;inset:0;background:rgba(10,15,12,.5)}
+.sheet .panel{position:relative;background:var(--bg);width:100%;max-width:760px;max-height:92%;border-radius:22px 22px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet .sh-head{display:flex;align-items:center;gap:10px;padding:16px 16px 8px}
+.sheet .sh-head h2{flex:1}
+.sheet .sh-body{overflow-y:auto;padding:8px 16px 16px;display:flex;flex-direction:column;gap:16px}
+.sheet .sh-foot{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--line);background:var(--surface)}
+.sheet .sh-foot .btn{flex:1}
+.ing{display:grid;grid-template-columns:minmax(0,1fr) 88px 76px 40px;gap:6px;align-items:center}
+.ing .inp{min-height:44px;padding:8px}
+.ing .cost{grid-column:1 / -1;font-size:.8rem;color:var(--muted);margin-top:-2px;font-variant-numeric:tabular-nums}
+.ing .x{border:0;background:var(--sunk);border-radius:10px;height:44px;font-size:1.2rem;color:var(--muted)}
+.ings{display:flex;flex-direction:column;gap:12px}
+.summary{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:8px}
+.summary .big{font-family:var(--f-display);font-size:1.6rem;font-weight:800;font-variant-numeric:tabular-nums}
+.warnbox{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:.875rem}
+.check{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+.check:first-child{border-top:0}
+.check input{width:24px;height:24px;margin-top:2px;accent-color:var(--accent);flex:none}
+.check.done .main{text-decoration:line-through;opacity:.55}
+.check .main{flex:1;min-width:0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:40;font-weight:700;max-width:calc(100% - 32px)}
+.shareimg{width:100%;border-radius:12px;border:1px solid var(--line)}
+.hist{font-size:.85rem}
+.mrow{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;gap:8px}
+.mrow .g3{display:grid;grid-template-columns:minmax(0,1fr) 84px minmax(0,1fr);gap:6px}
+.mrow .inp{min-height:44px;padding:8px}
+.mst{font-size:.8rem;font-weight:700}
+details.paste{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+details.paste summary{font-weight:700;cursor:pointer}
+details.paste[open] summary{margin-bottom:10px}
+textarea.inp{min-height:120px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem}
+.sect-title{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px}
+@media (max-width:420px){ .cell{min-height:100px;padding:5px} .cell .p{font-size:.72rem} .cell .d{font-size:.66rem} .ing{grid-template-columns:minmax(0,1fr) 72px 64px 36px} }
+@media (prefers-reduced-motion: no-preference){ .sheet .panel{animation:up .22s ease-out} @keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1 id="brandName">Cantina</h1><p id="brandSub">Menú, costos y compras</p></div>
+    <button class="iconbtn" data-act="config" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </header>
+  <div id="banner"></div>
+  <main id="view" class="stack"></main>
+</div>
+<button id="fab" class="fab" hidden></button>
+
+<nav class="nav" aria-label="Pantallas"><div class="in" id="nav"></div></nav>
+
+<div id="sheet" class="sheet" hidden>
+  <div class="scrim" data-act="close"></div>
+  <div class="panel" role="dialog" aria-modal="true" id="sheetPanel"></div>
+</div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ---------- utilidades ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone=o=>JSON.parse(JSON.stringify(o??null));
+const nf0=new Intl.NumberFormat('es-UY',{maximumFractionDigits:0});
+const nf2=new Intl.NumberFormat('es-UY',{minimumFractionDigits:2,maximumFractionDigits:2});
+const nfq=new Intl.NumberFormat('es-UY',{maximumFractionDigits:2});
+const money=n=>!isFinite(n)?'—':'$'+(Math.abs(n)<100?nf2:nf0).format(n);
+const money0=n=>!isFinite(n)?'—':'$'+nf0.format(n);
+const qty=n=>nfq.format(n);
+const pct=n=>!isFinite(n)?'—':nf0.format(n*100)+'%';
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseD=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(s,n)=>{const d=parseD(s);d.setDate(d.getDate()+n);return iso(d)};
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','setiembre','octubre','noviembre','diciembre'];
+const DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const DIAS3=['dom','lun','mar','mié','jue','vie','sáb'];
+const esHabil=s=>{const w=parseD(s).getDay();return w>=1&&w<=5};
+const largo=s=>{const d=parseD(s);return `${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const mesNombre=m=>{const [y,mm]=m.split('-').map(Number);return `${MESES[mm-1]} ${y}`};
+const mesMas=(m,n)=>{const [y,mm]=m.split('-').map(Number);const d=new Date(y,mm-1+n,1);return iso(d).slice(0,7)};
+const hoyISO=()=>iso(new Date());
+function lsGet(k,def){try{const v=localStorage.getItem(k);return v==null?def:JSON.parse(v)}catch(e){return def}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+/* ---------- unidades ---------- */
+const U={kg:{d:'peso',f:1000},g:{d:'peso',f:1},l:{d:'vol',f:1000},ml:{d:'vol',f:1},u:{d:'u',f:1}};
+const UNIDADES_DIM={peso:['g','kg'],vol:['ml','l'],u:['u']};
+const UNI_TXT={kg:'kg',g:'g',l:'litro',ml:'ml',u:'unidad'};
+const CATEGORIAS=['Almacén','Carnes','Verdulería','Lácteos y huevos','Panadería','Bebidas','Golosinas y snacks','Otros'];
+const round3=n=>Math.round(n*1000)/1000;
+function normQ(q,u){ // devuelve {cantidad,unidad} en la unidad más legible
+  if(u==='g'&&q>=1000)return {cantidad:round3(q/1000),unidad:'kg'};
+  if(u==='kg'&&q<1)return {cantidad:round3(q*1000),unidad:'g'};
+  if(u==='ml'&&q>=1000)return {cantidad:round3(q/1000),unidad:'l'};
+  if(u==='l'&&q<1)return {cantidad:round3(q*1000),unidad:'ml'};
+  return {cantidad:round3(q),unidad:u};
+}
+const qtyU=(q,u)=>{const n=normQ(q,u);return `${qty(n.unidad==='u'?Math.round(n.cantidad*100)/100:n.cantidad)} ${n.unidad}`};
+const unidadReceta=u=>u==='kg'?'g':u==='l'?'ml':u;
+
+/* ---------- estado ---------- */
+const S={insumos:{},recetas:{},menus:{},caja:{},configDocs:{},ready:false};
+const DEF_CFG={nombre:'Cantina',precioMenu:0,pedidosDefault:0,objetivo:35};
+const cfg=()=>({...DEF_CFG,...(S.configDocs.general||{})});
+const UI={tab:lsGet('cant.tab','hoy'),mes:hoyISO().slice(0,7),recTipo:'plato',insFiltro:'todos',insQ:'',compRango:'esta',compDesde:'',compHasta:'',cajaMes:hoyISO().slice(0,7)};
+let db=null, downloads=null, modoLocal=false, SH=null;
+const COLL_KEY={insumos:'insumos',recetas:'recetas',menu:'menus',caja:'caja',config:'configDocs'};
+
+/* ---------- guardado ---------- */
+function errTxt(e){const c=e&&e.code;
+  if(c==='invalid_argument')return 'No tenés permiso para guardar cambios acá. Pedile al dueño que te comparta como editora.';
+  if(c==='quota_exceeded')return 'Se llenó el espacio de la app. Borrá datos viejos para seguir.';
+  return 'No se pudo guardar. Revisá la conexión y probá de nuevo.';}
+async function put(coll,id,data){
+  if(db){ try{ await db.collection(coll).doc(id).set(data) }catch(e){ toast(errTxt(e)); throw e } }
+  else { S[COLL_KEY[coll]][id]=data; saveLocal(); scheduleRender() }
+}
+async function del(coll,id){
+  if(db){ try{ await db.collection(coll).doc(id).delete() }catch(e){ toast(errTxt(e)); throw e } }
+  else { delete S[COLL_KEY[coll]][id]; saveLocal(); scheduleRender() }
+}
+function saveLocal(){lsSet('cant.local',{insumos:S.insumos,recetas:S.recetas,menus:S.menus,caja:S.caja,configDocs:S.configDocs})}
+function loadLocal(){const o=lsGet('cant.local',null);if(o)Object.assign(S,o)}
+
+/* ---------- motor de costos ---------- */
+function costoBaseInsumo(x){const u=U[x.unidad];if(!u)return NaN;const util=(+x.cantidad||0)*u.f*(1-(+x.merma||0)/100);return util>0&&(+x.precio>0)?(+x.precio)/util:NaN}
+function refInfo(ref){
+  if(!ref)return null;const [t,id]=ref.split(':');
+  if(t==='i'){const x=S.insumos[id];if(!x)return null;return {nombre:x.nombre,dim:U[x.unidad]?.d,tipo:'i',obj:x,defU:unidadReceta(x.unidad)}}
+  const r=S.recetas[id];if(!r)return null;const ru=r.rindeUnidad||'l';return {nombre:r.nombre,dim:U[ru].d,tipo:'r',obj:r,defU:unidadReceta(ru)};
+}
+function costoUnitRef(ref,stack){
+  const [t,id]=ref.split(':');
+  if(t==='i'){const x=S.insumos[id];if(!x)return {v:NaN,falta:['un ingrediente que fue borrado']};const v=costoBaseInsumo(x);return {v,falta:isFinite(v)?[]:[x.nombre+' (sin precio)']}}
+  const r=S.recetas[id];if(!r)return {v:NaN,falta:['una preparación que fue borrada']};
+  if(stack.has(id))return {v:NaN,falta:[r.nombre+' (se usa a sí misma)']};
+  const c=costoReceta(id,stack);const rb=(+r.rinde||0)*U[r.rindeUnidad||'l'].f;
+  if(!(rb>0))return {v:NaN,falta:[r.nombre+' (falta cuánto rinde)']};
+  return {v:c.total/rb,falta:c.falta};
+}
+function porcionesDe(r){return r.tipo==='preparacion'?null:(r.modo==='tanda'?Math.max(1,+r.porciones||1):1)}
+function costoReceta(id,stack=new Set(),draft){
+  const r=draft||S.recetas[id];if(!r)return {total:NaN,porcion:NaN,falta:[],lineas:[]};
+  const st=new Set(stack);if(id)st.add(id);
+  let total=0;const falta=[],lineas=[];
+  for(const it of (r.ingredientes||[])){
+    if(!it.ref){lineas.push({costo:NaN});continue}
+    const info=refInfo(it.ref),u=U[it.unidad];
+    if(!info){falta.push('un ingrediente que fue borrado');lineas.push({costo:NaN});continue}
+    if(!u||u.d!==info.dim){falta.push(info.nombre+' (unidad no compatible)');lineas.push({costo:NaN,info});continue}
+    const cu=costoUnitRef(it.ref,st);const costo=cu.v*(+it.cantidad||0)*u.f;
+    falta.push(...cu.falta);if(isFinite(costo))total+=costo;
+    lineas.push({costo,info});
+  }
+  const p=porcionesDe(r);
+  return {total,porcion:p?total/p:NaN,falta:[...new Set(falta)],lineas};
+}
+function itemMenu(it){
+  if(!it)return null;
+  if(it.rid&&S.recetas[it.rid]){const r=S.recetas[it.rid];const c=costoReceta(it.rid);return {nombre:r.nombre,v:c.porcion,ok:!c.falta.length&&isFinite(c.porcion)}}
+  if(it.texto)return {nombre:it.texto,v:NaN,ok:false,sinCostear:true};
+  return null;
+}
+const MOTIVOS=['Feriado','Vacaciones','Paro'];
+const motivoDe=d=>(d&&(d.nota||'').trim())||'Sin clases';
+function getDia(f){return S.menus[f.slice(0,7)]?.dias?.[f]}
+function infoDia(f){
+  const d=getDia(f);if(!d)return null;
+  if(d.cerrado)return {cerrado:true,d};
+  const p=itemMenu(d.plato),q=itemMenu(d.postre);
+  if(!p&&!q)return null;
+  const partes=[p,q].filter(Boolean);
+  const ok=partes.every(x=>x.ok);
+  const costo=partes.reduce((a,x)=>a+(isFinite(x.v)?x.v:0),0);
+  const pedidos=+d.pedidos||+cfg().pedidosDefault||0;
+  return {d,p,q,ok,costo,pedidos,parcial:!ok};
+}
+function estadoCosto(costo,ok){
+  const c=cfg();if(!ok)return {cls:'warn',txt:'Sin costear'};
+  if(!(c.precioMenu>0))return {cls:'mute',txt:money(costo)};
+  const r=costo/c.precioMenu;return r<=c.objetivo/100?{cls:'ok',txt:pct(r)+' del precio'}:{cls:'warn',txt:pct(r)+' del precio'};
+}
+function usos(ref){
+  const [t,id]=ref.split(':');const out=[];
+  for(const [rid,r] of Object.entries(S.recetas)){if((r.ingredientes||[]).some(i=>i.ref===ref))out.push(r.nombre)}
+  if(t==='r'){let n=0;for(const m of Object.values(S.menus))for(const d of Object.values(m.dias||{})){if(d.plato?.rid===id||d.postre?.rid===id)n++}if(n)out.push(`${n} día${n>1?'s':''} del menú`)}
+  return out;
+}
+
+/* ---------- calendario ---------- */
+function semanasDelMes(m){
+  const [y,mm]=m.split('-').map(Number);const first=new Date(y,mm-1,1),last=new Date(y,mm,0);
+  const start=new Date(first);const w=start.getDay();
+  if(w===0)start.setDate(start.getDate()+1);else if(w===6)start.setDate(start.getDate()+2);else start.setDate(start.getDate()-(w-1));
+  const weeks=[];const cur=new Date(start);
+  while(cur<=last){const wk=[];for(let i=0;i<5;i++){const d=new Date(cur);d.setDate(cur.getDate()+i);wk.push(d.getMonth()===mm-1?iso(d):null)}weeks.push(wk);cur.setDate(cur.getDate()+7)}
+  return weeks;
+}
+const habilesMes=m=>semanasDelMes(m).flat().filter(Boolean);
+
+/* ---------- compras ---------- */
+function expandir(rid,escala,acc,stack){
+  if(stack.has(rid))return;const r=S.recetas[rid];if(!r)return;const st=new Set(stack);st.add(rid);
+  for(const it of r.ingredientes||[]){
+    const u=U[it.unidad];if(!u||!it.ref)continue;const q=(+it.cantidad||0)*u.f*escala;const [t,id]=it.ref.split(':');
+    if(t==='i'){if(S.insumos[id])acc[id]=(acc[id]||0)+q}
+    else{const sub=S.recetas[id];if(!sub)continue;const rb=(+sub.rinde||0)*U[sub.rindeUnidad||'l'].f;if(rb>0)expandir(id,q/rb,acc,st)}
+  }
+}
+function necesidades(desde,hasta){
+  const acc={},sinCostear=[],sinPedidos=[];let dias=0,menus=0;
+  for(let f=desde;f<=hasta;f=addDays(f,1)){
+    if(!esHabil(f))continue;const d=getDia(f);if(!d||d.cerrado)continue;
+    const n=+d.pedidos||+cfg().pedidosDefault||0;let any=false;
+    for(const k of ['plato','postre']){const it=d[k];
+      if(it?.rid&&S.recetas[it.rid]){if(n){expandir(it.rid,n/porcionesDe(S.recetas[it.rid]),acc,new Set());any=true}}
+      else if(it?.texto)sinCostear.push({f,t:it.texto});}
+    if((d.plato||d.postre)&&!n)sinPedidos.push(f);
+    if(any){dias++;menus+=n}
+  }
+  return {acc,sinCostear,sinPedidos,dias,menus};
+}
+function rangoCompras(){
+  const h=hoyISO();const w=parseD(h).getDay();const lunes=addDays(h,w===0?1:w===6?2:-(w-1));
+  if(UI.compRango==='esta')return [h,addDays(lunes,4)];
+  if(UI.compRango==='prox')return [addDays(lunes,7),addDays(lunes,11)];
+  return [UI.compDesde||h,UI.compHasta||addDays(lunes,4)];
+}
+
+/* ---------- íconos ---------- */
+const I={
+ hoy:'<path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3 5 5M19 19l-1.3-1.3M6.3 17.7 5 19M19 5l-1.3 1.3"/><circle cx="12" cy="12" r="4"/>',
+ menu:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M8 13h2M14 13h2M8 17h2M14 17h2"/>',
+ recetas:'<path d="M4 13h16a8 8 0 0 1-16 0z"/><path d="M9 9c0-2 2-2 2-4M14 9c0-2 2-2 2-4"/>',
+ insumos:'<path d="M5 8h14l-1.2 11.1a2 2 0 0 1-2 1.9H8.2a2 2 0 0 1-2-1.9z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+ compras:'<path d="M9 5h11M9 12h11M9 19h11"/><path d="m3 5 1.5 1.5L7 4M3 12l1.5 1.5L7 11M3 19l1.5 1.5L7 18"/>',
+ caja:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ x:'<path d="M6 6l12 12M18 6 6 18"/>',
+ left:'<path d="m15 6-6 6 6 6"/>',right:'<path d="m9 6 6 6-6 6"/>',
+};
+const ico=(n,sw=2)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+const TABS=[['hoy','Hoy'],['menu','Menú'],['recetas','Recetas'],['insumos','Insumos'],['compras','Compras'],['caja','Caja']];
+
+/* ---------- render principal ---------- */
+let rq=0;function scheduleRender(){if(rq)return;rq=requestAnimationFrame(()=>{rq=0;render()})}
+function render(){
+  const c=cfg();$('#brandName').textContent=c.nombre||'Cantina';
+  $('#nav').innerHTML=TABS.map(([k,t])=>`<button data-tab="${k}" ${UI.tab===k?'aria-current="page"':''}>${ico(k)}<span>${t}</span></button>`).join('');
+  $('#banner').innerHTML=modoLocal?`<div class="banner">Vista de prueba: los cambios se guardan solo en este dispositivo.</div>`:'';
+  const fab=$('#fab');fab.hidden=true;
+  if(!S.ready){$('#view').innerHTML=`<div class="empty"><p>Cargando tus datos…</p></div>`;return}
+  const V={hoy:vHoy,menu:vMenu,recetas:vRecetas,insumos:vInsumos,compras:vCompras,caja:vCaja}[UI.tab]||vHoy;
+  $('#view').innerHTML=V();
+  const fabs={recetas:['nuevaReceta','Nueva receta'],insumos:['nuevoInsumo','Nuevo insumo'],caja:['nuevoMov','Movimiento']};
+  if(fabs[UI.tab]){fab.hidden=false;fab.dataset.act=fabs[UI.tab][0];fab.innerHTML=ico('plus',2.5)+fabs[UI.tab][1]}
+}
+
+/* HOY */
+function vHoy(){
+  const c=cfg(),h=hoyISO(),inf=infoDia(h);
+  const noData=!Object.keys(S.insumos).length&&!Object.keys(S.recetas).length;
+  let hero;
+  if(inf&&!inf.cerrado){
+    const est=estadoCosto(inf.costo,inf.ok);
+    const margen=c.precioMenu>0&&inf.ok?c.precioMenu-inf.costo:NaN;
+    hero=`<section class="hero"><div class="spread"><p class="eyebrow">${cap(largo(h))}</p><span class="pill ${est.cls==='ok'?'ok':est.cls==='warn'?'warn':'mute'}">${est.txt}</span></div>
+      <div><p class="dish">${esc(inf.p?.nombre||'Sin plato')}</p><p class="dessert">Postre: ${esc(inf.q?.nombre||'—')}</p></div>
+      <div class="stats"><div><b>${inf.pedidos||'—'}</b><span>menús pedidos</span></div><div><b>${inf.ok?money(inf.costo):'—'}</b><span>costo por menú</span></div><div><b>${money(margen)}</b><span>ganancia por menú</span></div></div>
+      <button class="btn sm" data-act="editDia" data-f="${h}">Editar el día</button></section>`;
+  }else{
+    const t=inf?.cerrado?cap(motivoDe(inf.d)):esHabil(h)?'Todavía no cargaste el menú de hoy':'Hoy es fin de semana';
+    hero=`<section class="hero vacio"><p class="eyebrow">${cap(largo(h))}</p><h2>${t}</h2>${esHabil(h)&&!inf?.cerrado?`<button class="btn" data-act="editDia" data-f="${h}">Cargar el menú de hoy</button>`:''}</section>`;
+  }
+  // próximos
+  const prox=[];let f=addDays(h,1);let guard=0;
+  while(prox.length<5&&guard<21){if(esHabil(f))prox.push(f);f=addDays(f,1);guard++}
+  const proxHtml=prox.map(f=>{const i=infoDia(f);const d=parseD(f);
+    const est=i&&!i.cerrado?estadoCosto(i.costo,i.ok):null;
+    return `<button class="li" data-act="editDia" data-f="${f}"><div class="datebox"><b>${d.getDate()}</b><span>${DIAS3[d.getDay()]}</span></div>
+      <div class="main">${i?.cerrado?`<b class="muted">${esc(motivoDe(i.d))}</b>`:i?`<b>${esc(i.p?.nombre||'—')}</b><span class="small muted">${esc(i.q?.nombre||'')}</span>`:'<b class="muted">Sin menú cargado</b>'}</div>
+      <div class="side">${est?`<span class="pill ${est.cls}">${i.ok?money(i.costo):'Sin costear'}</span>`:''}</div></button>`}).join('');
+  // mes
+  const m=h.slice(0,7);const dias=habilesMes(m);let cargados=0,cost=0,nc=0,sc=0,cerr=0;
+  for(const f of dias){const i=infoDia(f);if(!i)continue;if(i.cerrado){cerr++;continue}cargados++;if(i.ok){cost+=i.costo;nc++}else sc++}
+  const prom=nc?cost/nc:NaN;
+  // precios
+  const cambios=[];const lim=addDays(h,-30);
+  for(const x of Object.values(S.insumos)){const hi=x.historial||[];if(hi.length<2)continue;const a=hi[hi.length-2],b=hi[hi.length-1];if(b.fecha<lim)continue;
+    const pa=costoBaseInsumo({...x,...a}),pb=costoBaseInsumo({...x,...b});if(!(pa>0&&pb>0))continue;cambios.push({x,var:pb/pa-1,f:b.fecha})}
+  cambios.sort((a,b)=>Math.abs(b.var)-Math.abs(a.var));
+  const sinPrecio=Object.values(S.insumos).filter(x=>!isFinite(costoBaseInsumo(x))).length;
+  return `${noData?`<div class="banner">Empezá cargando tus insumos (lo que comprás) y después armá las recetas. Con eso el menú calcula solo el costo de cada día.</div>`:''}
+  ${hero}
+  <section class="card"><div class="sect-title"><h3>Próximos días</h3><button class="chip" data-tab="menu">Ver mes</button></div><div class="list">${proxHtml}</div></section>
+  <section><div class="sect-title"><h3 style="text-transform:none">Así viene ${MESES[+m.slice(5)-1]}</h3></div>
+   <div class="kpis"><div class="kpi"><b>${money(prom)}</b><span>costo promedio por menú</span></div>
+   <div class="kpi"><b>${c.precioMenu>0?money(c.precioMenu-prom):'—'}</b><span>ganancia promedio por menú${c.precioMenu>0?` (precio ${money0(c.precioMenu)})`:''}</span></div>
+   <div class="kpi"><b>${cargados} / ${dias.length-cerr}</b><span>días con menú cargado</span></div>
+   <div class="kpi"><b style="color:${sc?'var(--warn)':'inherit'}">${sc}</b><span>días con platos sin costear</span></div></div></section>
+  <section class="card"><div class="sect-title"><h3>Precios que cambiaron</h3><span class="small muted">últimos 30 días</span></div>
+   ${cambios.length?`<div class="list">${cambios.slice(0,6).map(ch=>`<button class="li" data-act="editInsumo" data-id="${ch.x.id}"><div class="main"><b>${esc(ch.x.nombre)}</b><span class="small muted">Actualizado el ${parseD(ch.f).getDate()}/${parseD(ch.f).getMonth()+1} · ahora ${money(+ch.x.precio)} por ${qty(+ch.x.cantidad)} ${ch.x.unidad}</span></div><div class="side ${ch.var>0?'up':'down'} num">${ch.var>0?'▲':'▼'} ${pct(Math.abs(ch.var))}</div></button>`).join('')}</div>`:`<p class="muted small">Cuando actualices un precio en Insumos, aparece acá con cuánto subió o bajó.</p>`}
+   ${sinPrecio?`<p class="small" style="margin-top:8px;color:var(--warn)">${sinPrecio} insumo${sinPrecio>1?'s':''} sin precio cargado.</p>`:''}</section>`;
+}
+
+/* MENÚ */
+function vMenu(){
+  const m=UI.mes,h=hoyISO(),c=cfg();const weeks=semanasDelMes(m);
+  let cells='';['Lun','Mar','Mié','Jue','Vie'].forEach(d=>cells+=`<div class="dow">${d}</div>`);
+  for(const wk of weeks)for(const f of wk){
+    if(!f){cells+=`<div class="cell blank" aria-hidden="true"></div>`;continue}
+    const i=infoDia(f);const dn=parseD(f).getDate();const cls=['cell',f===h?'today':'',i?.cerrado?'closed':''].join(' ');
+    let inner=`<span class="dn">${dn}</span>`;
+    if(i?.cerrado)inner+=`<span class="p muted">${esc(motivoDe(i.d))}</span>`;
+    else if(i){const est=estadoCosto(i.costo,i.ok);inner+=`<span class="p">${esc(i.p?.nombre||'—')}</span><span class="d">${esc(i.q?.nombre||'')}</span><span class="c ${i.ok?(est.cls==='warn'?'warn':'ok'):'warn'}">${i.ok?money(i.costo):'Sin costear'}</span>`}
+    else inner+=`<span class="add" aria-hidden="true">+</span>`;
+    cells+=`<button class="${cls}" data-act="editDia" data-f="${f}" aria-label="${largo(f)}">${inner}</button>`;
+  }
+  let cargados=0,cost=0,nc=0,pedidos=0;
+  for(const f of habilesMes(m)){const i=infoDia(f);if(!i||i.cerrado)continue;cargados++;if(i.ok){cost+=i.costo;nc++}pedidos+=i.pedidos||0}
+  const prom=nc?cost/nc:NaN;
+  return `<div class="monthbar"><button class="iconbtn" data-act="mes" data-n="-1" aria-label="Mes anterior">${ico('left')}</button><h2>${mesNombre(m)}</h2><button class="iconbtn" data-act="mes" data-n="1" aria-label="Mes siguiente">${ico('right')}</button></div>
+  <div class="row wrap-r"><button class="btn ghost sm" data-act="copiarMes">Copiar mes anterior</button><button class="btn ghost sm" data-act="compartir">Exportar menú</button></div>
+  <div class="cal" lang="es">${cells}</div>
+  <div class="legend"><span><span class="pill ok">$</span> dentro del objetivo (${c.objetivo}%)</span><span><span class="pill warn">$</span> por encima o sin costear</span></div>
+  <div class="kpis"><div class="kpi"><b>${money(prom)}</b><span>costo promedio por menú</span></div><div class="kpi"><b>${nf0.format(pedidos)}</b><span>menús estimados en el mes</span></div>
+  ${c.precioMenu>0&&nc?`<div class="kpi" style="grid-column:1/-1"><b>${money0(pedidos*(c.precioMenu-prom))}</b><span>ganancia bruta estimada del mes (precio ${money0(c.precioMenu)} menos materia prima)</span></div>`:''}</div>`;
+}
+
+/* RECETAS */
+function vRecetas(){
+  const c=cfg();const t=UI.recTipo;
+  const list=Object.entries(S.recetas).filter(([,r])=>r.tipo===t).sort((a,b)=>a[1].nombre.localeCompare(b[1].nombre));
+  const rows=list.map(([id,r])=>{const k=costoReceta(id);let side,sub;
+    if(t==='preparacion'){const rb=(+r.rinde||0);const u=r.rindeUnidad||'l';side=`<b class="num">${money(k.total)}</b><span class="small muted">la olla</span>`;sub=rb>0?`Rinde ${qty(rb)} ${u} · ${money(k.total/rb)} por ${u}`:'Falta cargar cuánto rinde';}
+    else{const est=estadoCosto(k.porcion,!k.falta.length);side=`<b class="num">${money(k.porcion)}</b><span class="pill ${est.cls}">${k.falta.length?'Incompleto':c.precioMenu>0?pct(k.porcion/c.precioMenu):'por porción'}</span>`;sub=r.modo==='tanda'?`Olla de ${r.porciones} porciones · ${money(k.total)} total`:'Cantidades por porción';}
+    return `<button class="li" data-act="editReceta" data-id="${id}"><div class="main"><b>${esc(r.nombre)}</b><span class="small muted">${sub}</span>${k.falta.length?`<span class="small" style="display:block;color:var(--warn)">Falta: ${esc(k.falta.join(', '))}</span>`:''}</div><div class="side" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">${side}</div></button>`}).join('');
+  const hints={plato:'El costo es por porción. El porcentaje compara con el precio del menú.',postre:'El postre se suma al costo del plato en el menú del día.',preparacion:'Tuco, puré, salsas: se cocinan en olla y se usan como ingrediente en otros platos. Si cambia un precio, se actualiza todo.'};
+  return `<div class="chips" role="group">${[['plato','Platos'],['postre','Postres'],['preparacion','Preparaciones']].map(([k,l])=>`<button class="chip" data-act="recTipo" data-v="${k}" aria-pressed="${t===k}">${l}</button>`).join('')}</div>
+  <p class="small muted">${hints[t]}</p>
+  ${list.length?`<section class="card"><div class="list">${rows}</div></section>`:`<div class="empty"><p>Todavía no hay ${t==='plato'?'platos':t==='postre'?'postres':'preparaciones'}.</p><button class="btn" data-act="nuevaReceta">Crear la primera</button></div>`}`;
+}
+
+/* INSUMOS */
+function vInsumos(){
+  return `<div class="row"><input class="inp" id="insQ" data-ui="insQ" type="search" placeholder="Buscar insumo" value="${esc(UI.insQ)}" style="flex:1;min-width:0"><button class="btn ghost" data-act="masiva" style="white-space:nowrap">Carga rápida</button></div>
+  <div class="chips">${[['todos','Todos'],['mp','Materias primas'],['rv','Reventa']].map(([k,l])=>`<button class="chip" data-act="insFiltro" data-v="${k}" aria-pressed="${UI.insFiltro===k}">${l}</button>`).join('')}</div>
+  <div id="insList" class="stack">${insList()}</div>`;
+}
+function insList(){
+  const q=UI.insQ.trim().toLowerCase();
+  const items=Object.values(S.insumos).filter(x=>(UI.insFiltro==='todos'||(UI.insFiltro==='rv'?x.reventa:!x.reventa))&&(!q||x.nombre.toLowerCase().includes(q)));
+  if(!items.length)return `<div class="empty"><p>${Object.keys(S.insumos).length?'No hay insumos con ese filtro.':'Cargá lo que comprás: por ejemplo, 1 kg de tallarines a $300.'}</p>${Object.keys(S.insumos).length?'':'<div class="row wrap-r" style="justify-content:center"><button class="btn" data-act="masiva">Cargar varios a la vez</button><button class="btn ghost" data-act="nuevoInsumo">Cargar uno</button></div>'}</div>`;
+  const groups={};for(const x of items)(groups[x.categoria||'Otros']??=[]).push(x);
+  return CATEGORIAS.filter(k=>groups[k]).map(k=>`<section class="card"><p class="eyebrow">${k}</p><div class="list">${groups[k].sort((a,b)=>a.nombre.localeCompare(b.nombre)).map(x=>{
+    const porU=(+x.precio)/(+x.cantidad||1);const cb=costoBaseInsumo(x);
+    let side=`<b class="num">${money(porU)}</b><span class="small muted"> / ${x.unidad}</span>`;
+    let sub=`Compra: ${qty(+x.cantidad)} ${x.unidad} a ${money(+x.precio)}${+x.merma?` · merma ${x.merma}%`:''}`;
+    let extra='';
+    if(x.reventa&&+x.precioVenta>0&&x.unidad==='u'){const mg=(+x.precioVenta-porU)/(+x.precioVenta);extra=`<span class="pill ${mg>=.3?'ok':'warn'}">Venta ${money0(+x.precioVenta)} · ${pct(mg)}</span>`}
+    else if(+x.merma){extra=`<span class="small muted">real ${money((cb||0)*U[x.unidad].f)} / ${x.unidad}</span>`}
+    return `<button class="li" data-act="editInsumo" data-id="${x.id}"><div class="main"><b>${esc(x.nombre)}</b><span class="small muted">${sub}</span></div><div class="side" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span>${side}</span>${extra}</div></button>`}).join('')}</div></section>`).join('');
+}
+
+/* COMPRAS */
+function vCompras(){
+  const [desde,hasta]=rangoCompras();const N=necesidades(desde,hasta);
+  const checks=lsGet('cant.checks',{});const key=desde+'_'+hasta;const ck=checks[key]||{};
+  const groups={};let total=0;
+  for(const [id,q] of Object.entries(N.acc)){const x=S.insumos[id];if(!x)continue;const u=U[x.unidad];
+    const bruto=q/(1-(+x.merma||0)/100);const enUnidad=bruto/u.f;const paquetes=bruto/((+x.cantidad||1)*u.f);const costo=paquetes*(+x.precio||0);if(isFinite(costo))total+=costo;
+    (groups[x.categoria||'Otros']??=[]).push({x,enUnidad,paquetes,costo});}
+  const hayItems=Object.keys(groups).length;
+  const fechas=`${parseD(desde).getDate()}/${parseD(desde).getMonth()+1} al ${parseD(hasta).getDate()}/${parseD(hasta).getMonth()+1}`;
+  return `<div class="chips">${[['esta','Esta semana'],['prox','Próxima semana'],['otro','Elegir fechas']].map(([k,l])=>`<button class="chip" data-act="compRango" data-v="${k}" aria-pressed="${UI.compRango===k}">${l}</button>`).join('')}</div>
+  ${UI.compRango==='otro'?`<div class="grid2"><div class="field"><label for="cd">Desde</label><input class="inp" id="cd" type="date" data-ui="compDesde" value="${desde}"></div><div class="field"><label for="ch">Hasta</label><input class="inp" id="ch" type="date" data-ui="compHasta" value="${hasta}"></div></div>`:''}
+  <section class="card"><p class="eyebrow">Del ${fechas}</p><div class="spread" style="margin-top:4px"><div><b style="font-size:1.4rem;font-family:var(--f-display)" class="num">${money0(total)}</b><p class="small muted">compra estimada · ${N.menus} menús en ${N.dias} días</p></div>${hayItems?`<button class="btn ghost sm" data-act="copiarLista">Copiar lista</button>`:''}</div>
+  ${N.sinCostear.length?`<div class="warnbox" style="margin-top:10px">No están en la lista (plato sin receta): ${N.sinCostear.map(s=>esc(s.t)+' ('+parseD(s.f).getDate()+'/'+(parseD(s.f).getMonth()+1)+')').join(', ')}.</div>`:''}
+  ${N.sinPedidos.length?`<div class="warnbox" style="margin-top:10px">Faltan los menús pedidos de ${N.sinPedidos.length} día${N.sinPedidos.length>1?'s':''}. Cargalos en el Menú o poné un número habitual en Ajustes.</div>`:''}</section>
+  ${hayItems?CATEGORIAS.filter(k=>groups[k]).map(k=>`<section class="card"><p class="eyebrow">${k}</p><div>${groups[k].sort((a,b)=>a.x.nombre.localeCompare(b.x.nombre)).map(g=>{const done=!!ck[g.x.id];
+    const cant=g.x.unidad==='u'?`${Math.ceil(g.enUnidad)} u`:`${qty(Math.ceil(g.enUnidad*10)/10)} ${g.x.unidad}`;
+    const paq=(+g.x.cantidad!==1)?` · ${Math.ceil(g.paquetes)} × ${qty(+g.x.cantidad)} ${g.x.unidad}`:'';
+    return `<label class="check ${done?'done':''}"><input type="checkbox" data-check="${g.x.id}" data-key="${key}" ${done?'checked':''}><div class="main"><b>${esc(g.x.nombre)}</b><div class="small muted">${cant}${paq}</div></div><span class="num">${money0(g.costo)}</span></label>`}).join('')}</div></section>`).join('')
+  :`<div class="empty"><p>No hay nada para comprar en estas fechas. La lista sale de los días del menú que tienen receta y menús pedidos.</p><button class="btn" data-tab="menu">Ir al menú</button></div>`}`;
+}
+
+/* CAJA */
+function vCaja(){
+  const m=UI.cajaMes;const doc=S.caja[m]||{movs:[]};const movs=[...(doc.movs||[])].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  let v=0,g=0;for(const x of movs){if(x.tipo==='venta')v+=+x.monto;else g+=+x.monto}
+  const T={venta:'Venta',compra:'Compra',gasto:'Gasto'};
+  return `<div class="monthbar"><button class="iconbtn" data-act="cajaMes" data-n="-1" aria-label="Mes anterior">${ico('left')}</button><h2>${mesNombre(m)}</h2><button class="iconbtn" data-act="cajaMes" data-n="1" aria-label="Mes siguiente">${ico('right')}</button></div>
+  <div class="kpis"><div class="kpi"><b>${money0(v)}</b><span>ventas</span></div><div class="kpi"><b>${money0(g)}</b><span>compras y gastos</span></div>
+  <div class="kpi" style="grid-column:1/-1"><b style="color:${v-g>=0?'var(--ok)':'var(--warn)'}">${money0(v-g)}</b><span>resultado del mes</span></div></div>
+  ${movs.length?`<section class="card"><div class="list">${movs.map(x=>`<button class="li" data-act="editMov" data-id="${x.id}"><div class="datebox"><b>${parseD(x.fecha).getDate()}</b><span>${DIAS3[parseD(x.fecha).getDay()]}</span></div><div class="main"><b>${esc(x.concepto||T[x.tipo])}</b><span class="small muted">${T[x.tipo]}</span></div><div class="side num" style="font-weight:700;color:${x.tipo==='venta'?'var(--ok)':'var(--ink)'}">${x.tipo==='venta'?'+':'−'}${money0(+x.monto)}</div></button>`).join('')}</div></section>`
+  :`<div class="empty"><p>Sin movimientos este mes. Anotá ventas del día, compras y otros gastos para ver el resultado.</p><button class="btn" data-act="nuevoMov">Anotar el primero</button></div>`}`;
+}
+
+/* ---------- hojas (edición) ---------- */
+function openSheet(kind,d,extra={}){SH={kind,d,armed:false,...extra};renderSheet();document.body.classList.add('lock')}
+function closeSheet(){SH=null;$('#sheet').hidden=true;document.body.classList.remove('lock');scheduleRender()}
+function renderSheet(){
+  const def=SHEETS[SH.kind](SH);
+  $('#sheetPanel').innerHTML=`<div class="sh-head"><h2>${def.title}</h2><button class="iconbtn" data-act="close" aria-label="Cerrar">${ico('x')}</button></div><div class="sh-body">${def.body}</div>${def.foot?`<div class="sh-foot">${def.foot}</div>`:''}`;
+  $('#sheet').hidden=false;sheetCalc();
+}
+function sheetCalc(){if(SH&&SHEETS[SH.kind].calc)SHEETS[SH.kind].calc(SH)}
+const delBtn=(act,label='Borrar')=>`<button class="btn danger ${SH.armed?'armed':''}" data-act="${act}">${SH.armed?'Tocá de nuevo para borrar':label}</button>`;
+const opt=(v,l,sel)=>`<option value="${esc(v)}" ${sel?'selected':''}>${esc(l)}</option>`;
+
+const SHEETS={
+ dia:{},receta:{},insumo:{},mov:{},config:{},copiar:{},share:{}
+};
+
+/* día del menú */
+SHEETS.dia=Object.assign(s=>{const d=s.d;
+  const sel=(k,tipo)=>{const list=Object.entries(S.recetas).filter(([,r])=>r.tipo===tipo).sort((a,b)=>a[1].nombre.localeCompare(b[1].nombre));
+    return `<select class="inp" id="sel-${k}" data-f="${k}Sel" data-rerender="1">${opt('','— Sin elegir —',!d[k+'Sel'])}${list.map(([id,r])=>opt('r:'+id,r.nombre,d[k+'Sel']==='r:'+id)).join('')}${opt('txt','Escribir otro (sin costear)',d[k+'Sel']==='txt')}</select>
+    ${d[k+'Sel']==='txt'?`<input class="inp" id="txt-${k}" data-f="${k}Txt" placeholder="Nombre del ${k}" value="${esc(d[k+'Txt'])}"><p class="hint">Queda en el menú aunque no tenga receta. Lo podés costear después.</p>`:''}`};
+  return {title:cap(largo(d.fecha)),
+   body:`<label class="switch"><input type="checkbox" id="cerr" data-f="cerrado" data-rerender="1" ${d.cerrado?'checked':''}><span><b>Este día no se cocina</b><br><span class="hint">Feriado, vacaciones, paro…</span></span></label>
+    ${d.cerrado?`<div class="field"><span class="lbl">Motivo</span><div class="chips">${[...MOTIVOS,'Otro'].map(m=>`<button class="chip" data-act="motivo" data-v="${m}" aria-pressed="${(d.motivoSel||'Feriado')===m}">${m}</button>`).join('')}</div>
+     ${d.motivoSel==='Otro'?`<input class="inp" id="nota" data-f="nota" value="${esc(d.nota)}" placeholder="Ej: Salida didáctica">`:''}<p class="hint">En el calendario y en lo que se comparte aparece solo esta palabra.</p></div>`:
+    `<div class="field"><label for="sel-plato">Plato</label>${sel('plato','plato')}</div>
+    <div class="field"><label for="sel-postre">Postre</label>${sel('postre','postre')}</div>
+    <div class="field"><label for="ped">Menús pedidos</label><input class="inp num" id="ped" type="number" inputmode="numeric" min="0" data-f="pedidos" value="${esc(d.pedidos)}" placeholder="${cfg().pedidosDefault||'Ej: 60'}"><p class="hint">Se usa para la lista de compras.${cfg().pedidosDefault?` Si lo dejás vacío se toman ${cfg().pedidosDefault}.`:''}</p></div>
+    <div class="summary" id="diaSum"></div>`}`,
+   foot:`${s.existe?delBtn('borrarDia','Vaciar día'):''}<button class="btn" data-act="guardarDia">Guardar</button>`};
+},{calc(s){const el=$('#diaSum');if(!el)return;const d=s.d;const c=cfg();
+  const it=k=>d[k+'Sel']==='txt'?(d[k+'Txt']?{texto:d[k+'Txt']}:null):d[k+'Sel']?{rid:d[k+'Sel'].slice(2)}:null;
+  const p=itemMenu(it('plato')),q=itemMenu(it('postre'));const parts=[p,q].filter(Boolean);
+  if(!parts.length){el.innerHTML='<p class="muted small">Elegí un plato y un postre para ver el costo.</p>';return}
+  const ok=parts.every(x=>x.ok);const costo=parts.reduce((a,x)=>a+(isFinite(x.v)?x.v:0),0);const n=+d.pedidos||+c.pedidosDefault||0;
+  el.innerHTML=`<p class="eyebrow">Costo del menú</p><p class="big">${ok?money(costo):'Sin costear'}</p>
+   <p class="small muted">${parts.map(x=>`${esc(x.nombre)}: ${x.ok?money(x.v):'sin costear'}`).join(' · ')}</p>
+   ${ok&&c.precioMenu>0?`<p class="small">Ganancia por menú: <b>${money(c.precioMenu-costo)}</b> (${pct(costo/c.precioMenu)} de costo)${n?` · del día: <b>${money0(n*(c.precioMenu-costo))}</b>`:''}</p>`:''}`;
+}});
+
+/* receta */
+SHEETS.receta=Object.assign(s=>{const r=s.d;const t=r.tipo;
+  const opts=(cur)=>{const ins=Object.values(S.insumos).sort((a,b)=>a.nombre.localeCompare(b.nombre));const pre=Object.entries(S.recetas).filter(([id,x])=>x.tipo==='preparacion'&&id!==s.id).sort((a,b)=>a[1].nombre.localeCompare(b[1].nombre));
+    return opt('','Elegí un ingrediente',!cur)+`<optgroup label="Insumos">${ins.map(x=>opt('i:'+x.id,x.nombre,cur==='i:'+x.id)).join('')}</optgroup>${pre.length?`<optgroup label="Preparaciones">${pre.map(([id,x])=>opt('r:'+id,x.nombre,cur==='r:'+id)).join('')}</optgroup>`:''}`};
+  const rows=(r.ingredientes||[]).map((it,i)=>{const info=refInfo(it.ref);const dims=info?UNIDADES_DIM[info.dim]:['g','kg','ml','l','u'];
+    return `<div class="ing"><select class="inp" aria-label="Ingrediente" data-ing="${i}" data-k="ref" data-rerender="1">${opts(it.ref)}</select>
+     <input class="inp num" type="number" inputmode="decimal" min="0" step="any" aria-label="Cantidad" data-ing="${i}" data-k="cantidad" value="${esc(it.cantidad)}" placeholder="0">
+     <select class="inp" aria-label="Unidad" data-ing="${i}" data-k="unidad">${dims.map(u=>opt(u,u,it.unidad===u)).join('')}</select>
+     <button class="x" data-act="quitarIng" data-i="${i}" aria-label="Quitar">×</button><span class="cost" id="ingc-${i}"></span></div>`}).join('');
+  const us=s.id?usos('r:'+s.id):[];
+  return {title:s.id?'Editar receta':'Nueva receta',
+   body:`<div class="field"><label for="rn">Nombre</label><input class="inp" id="rn" data-f="nombre" value="${esc(r.nombre)}" placeholder="${t==='preparacion'?'Ej: Tuco':t==='postre'?'Ej: Gelatina':'Ej: Tallarines con tuco'}"></div>
+    <div class="field"><span class="lbl">Tipo</span><div class="seg">${[['plato','Plato'],['postre','Postre'],['preparacion','Preparación']].map(([k,l])=>`<button data-act="rSet" data-k="tipo" data-v="${k}" aria-pressed="${t===k}">${l}</button>`).join('')}</div></div>
+    ${t==='preparacion'?`<div class="field"><span class="lbl">¿Cuánto rinde la olla?</span><div class="grid2"><input class="inp num" id="rr" type="number" inputmode="decimal" min="0" step="any" data-f="rinde" value="${esc(r.rinde)}" placeholder="Ej: 3" aria-label="Rinde"><select class="inp" data-f="rindeUnidad" data-rerender="1" aria-label="Unidad del rendimiento">${['l','kg','u'].map(u=>opt(u,UNI_TXT[u]+(u==='u'?'es':'s'),r.rindeUnidad===u)).join('')}</select></div><p class="hint">Con esto la podés usar como ingrediente en otros platos (por ejemplo 150 ml de tuco por porción).</p></div>`
+    :`<div class="field"><span class="lbl">¿Cómo cargás las cantidades?</span><div class="seg"><button data-act="rSet" data-k="modo" data-v="porcion" aria-pressed="${r.modo!=='tanda'}">Para 1 porción</button><button data-act="rSet" data-k="modo" data-v="tanda" aria-pressed="${r.modo==='tanda'}">Para una olla</button></div>
+     ${r.modo==='tanda'?`<div class="row"><label for="rp" class="small">La olla rinde</label><input class="inp num" id="rp" style="width:110px" type="number" inputmode="numeric" min="1" data-f="porciones" value="${esc(r.porciones)}"><span class="small">porciones</span></div>
+     <div id="recalcBox"></div>`:''}
+     ${s.aviso?`<p class="small" style="color:var(--accent);font-weight:700">${esc(s.aviso)}</p>`:''}
+     <p class="hint">${r.modo==='tanda'?'Cargá lo que lleva la olla entera. Si cambiás las porciones, las cantidades quedan igual y cambia el costo por porción.':'Cargá lo que lleva un solo plato.'}</p></div>`}
+    <div class="field"><span class="lbl">Ingredientes</span><div class="ings">${rows||'<p class="hint">Agregá los ingredientes con la cantidad que lleva.</p>'}</div>
+     <button class="btn ghost sm" data-act="agregarIng">+ Agregar ingrediente</button>${!Object.keys(S.insumos).length?'<p class="hint">Primero cargá insumos en la pantalla Insumos.</p>':''}</div>
+    <div class="summary" id="recSum"></div>
+    ${us.length?`<p class="small muted">Se usa en: ${esc(us.join(', '))}</p>`:''}`,
+   foot:`${s.id?delBtn('borrarReceta'):''}<button class="btn" data-act="guardarReceta">Guardar</button>`};
+},{calc(s){const r=s.d;const k=costoReceta(s.id,new Set(),r);const c=cfg();
+  const nP=r.modo==='tanda'?Math.max(1,+r.porciones||1):(+c.pedidosDefault||60);
+  (r.ingredientes||[]).forEach((it,i)=>{const el=$('#ingc-'+i);if(!el)return;if(!it.ref||!(+it.cantidad>0)||!U[it.unidad]){el.textContent='';return}
+    const costo=isFinite(k.lineas[i]?.costo)?money(k.lineas[i].costo):'—';
+    let eq='';if(r.tipo!=='preparacion'){eq=r.modo==='tanda'?` · por porción: ${qtyU((+it.cantidad)/nP,it.unidad)}`:` · para ${nP} porciones: ${qtyU((+it.cantidad)*nP,it.unidad)}`}
+    el.textContent=costo+eq});
+  const rb=$('#recalcBox');if(rb){const n=Math.max(1,+r.porciones||1);rb.innerHTML=s.base&&s.base!==n&&(r.ingredientes||[]).some(i=>+i.cantidad>0)?`<button class="btn ghost sm" data-act="recalcOlla">Ajustar cantidades de ${s.base} a ${n} porciones</button>`:''}
+  const el=$('#recSum');if(!el)return;
+  let h='';
+  if(r.tipo==='preparacion'){const rb=+r.rinde||0;h=`<p class="eyebrow">Costo de la olla</p><p class="big">${money(k.total)}</p>${rb>0?`<p class="small">${money(k.total/rb)} por ${r.rindeUnidad||'l'} · ${money(k.total/rb/(r.rindeUnidad==='u'?1:1000))} por ${r.rindeUnidad==='kg'?'g':r.rindeUnidad==='u'?'u':'ml'}</p>`:'<p class="small muted">Cargá cuánto rinde para usarla en otros platos.</p>'}`}
+  else{h=`<p class="eyebrow">Costo por porción</p><p class="big">${money(k.porcion)}</p>${r.modo==='tanda'?`<p class="small muted">Olla completa: ${money(k.total)}</p>`:''}${c.precioMenu>0&&isFinite(k.porcion)?`<p class="small">${pct(k.porcion/c.precioMenu)} del precio del menú (${money0(c.precioMenu)})</p>`:''}`}
+  if(k.falta.length)h+=`<div class="warnbox">Falta: ${esc(k.falta.join(', '))}</div>`;
+  el.innerHTML=h;
+}});
+
+/* insumo */
+SHEETS.insumo=Object.assign(s=>{const x=s.d;const hist=(x.historial||[]).slice(-5).reverse();
+  return {title:s.id?'Editar insumo':'Nuevo insumo',
+   body:`<div class="field"><label for="in">Nombre</label><input class="inp" id="in" data-f="nombre" value="${esc(x.nombre)}" placeholder="Ej: Tallarines"></div>
+   <div class="field"><label for="ic">Categoría</label><select class="inp" id="ic" data-f="categoria">${CATEGORIAS.map(c=>opt(c,c,x.categoria===c)).join('')}</select></div>
+   <div class="field"><span class="lbl">¿Cómo lo comprás?</span><div class="grid2"><input class="inp num" type="number" inputmode="decimal" min="0" step="any" data-f="cantidad" value="${esc(x.cantidad)}" aria-label="Cantidad que comprás" placeholder="1"><select class="inp" data-f="unidad" aria-label="Unidad">${['kg','g','l','ml','u'].map(u=>opt(u,u==='u'?'unidades':u,x.unidad===u)).join('')}</select></div></div>
+   <div class="field"><label for="ip">Precio que pagás por eso</label><input class="inp num" id="ip" type="number" inputmode="decimal" min="0" step="any" data-f="precio" value="${esc(x.precio)}" placeholder="$"></div>
+   <div class="field"><label for="im">Merma (opcional)</label><div class="row"><input class="inp num" id="im" style="width:110px" type="number" inputmode="decimal" min="0" max="95" step="any" data-f="merma" value="${esc(x.merma)}" placeholder="0"><span>%</span></div><p class="hint">Lo que se pierde al limpiar o pelar. Ej: la cebolla pierde cerca de 10%, el pollo con hueso 30%.</p></div>
+   <label class="switch"><input type="checkbox" data-f="reventa" data-rerender="1" ${x.reventa?'checked':''}><span><b>Lo vendo tal cual</b><br><span class="hint">Refrescos, jugos, snacks</span></span></label>
+   ${x.reventa?`<div class="field"><label for="iv">Precio de venta por unidad</label><input class="inp num" id="iv" type="number" inputmode="decimal" min="0" step="any" data-f="precioVenta" value="${esc(x.precioVenta)}" placeholder="$"></div>`:''}
+   <div class="summary" id="insSum"></div>
+   ${hist.length?`<div class="field"><span class="lbl">Historial de precios</span><div class="hist">${hist.map(h=>`<div class="spread"><span class="muted">${h.fecha.split('-').reverse().join('/')}</span><span class="num">${money(+h.precio)} por ${qty(+h.cantidad)} ${h.unidad}</span></div>`).join('')}</div></div>`:''}
+   ${s.id&&usos('i:'+s.id).length?`<p class="small muted">Se usa en: ${esc(usos('i:'+s.id).join(', '))}</p>`:''}`,
+   foot:`${s.id?delBtn('borrarInsumo'):''}<button class="btn" data-act="guardarInsumo">Guardar</button>`};
+},{calc(s){const x=s.d;const el=$('#insSum');if(!el)return;const cb=costoBaseInsumo(x);
+  if(!isFinite(cb)){el.innerHTML='<p class="small muted">Completá cantidad y precio para ver el costo por gramo, ml o unidad.</p>';return}
+  const u=U[x.unidad];const bu=x.unidad==='kg'||x.unidad==='g'?'g':x.unidad==='u'?'u':'ml';
+  let h=`<p class="eyebrow">Para las recetas</p><p class="big">${money(cb*(bu==='u'?1:100))} <span class="small muted">por ${bu==='u'?'unidad':'100 '+bu}</span></p>`;
+  if(bu!=='u')h+=`<p class="small muted">Ej: 300 ${bu} cuestan ${money(cb*300)}</p>`;
+  if(x.reventa&&+x.precioVenta>0){const costoU=(+x.precio)/(+x.cantidad||1);const mg=(+x.precioVenta-costoU)/(+x.precioVenta);h+=`<p class="small">Margen de reventa: <b>${pct(mg)}</b> (ganás ${money(+x.precioVenta-costoU)} por unidad)</p>`}
+  const us=s.id?usos('i:'+s.id):[];
+  if(s.id&&s.orig&&(+s.orig.precio!==+x.precio||+s.orig.cantidad!==+x.cantidad||s.orig.unidad!==x.unidad)&&us.length)h+=`<p class="small" style="color:var(--sun)"><b>Al guardar se actualiza el costo de ${us.length} receta${us.length>1?'s':''}.</b></p>`;
+  el.innerHTML=h;
+}});
+
+/* movimiento de caja */
+SHEETS.mov=Object.assign(s=>{const x=s.d;
+  return {title:s.id?'Editar movimiento':'Nuevo movimiento',
+   body:`<div class="seg">${[['venta','Venta'],['compra','Compra'],['gasto','Gasto']].map(([k,l])=>`<button data-act="mSet" data-v="${k}" aria-pressed="${x.tipo===k}">${l}</button>`).join('')}</div>
+   <div class="grid2"><div class="field"><label for="mf">Fecha</label><input class="inp" id="mf" type="date" data-f="fecha" value="${esc(x.fecha)}"></div><div class="field"><label for="mm">Monto</label><input class="inp num" id="mm" type="number" inputmode="decimal" min="0" step="any" data-f="monto" value="${esc(x.monto)}" placeholder="$"></div></div>
+   <div class="field"><label for="mc">Detalle</label><input class="inp" id="mc" data-f="concepto" value="${esc(x.concepto)}" placeholder="${x.tipo==='venta'?'Ej: Ventas del día':x.tipo==='compra'?'Ej: Carnicería':'Ej: Gas'}"></div>`,
+   foot:`${s.id?delBtn('borrarMov'):''}<button class="btn" data-act="guardarMov">Guardar</button>`};
+},{});
+
+/* ajustes */
+SHEETS.config=Object.assign(s=>{const x=s.d;const ej=Object.values(S.insumos).some(i=>i.ejemplo)||Object.values(S.recetas).some(i=>i.ejemplo)||Object.values(S.menus).some(i=>i.ejemplo);
+  return {title:'Ajustes',
+   body:`<div class="field"><label for="cn">Nombre de la cantina</label><input class="inp" id="cn" data-f="nombre" value="${esc(x.nombre)}"></div>
+   <div class="field"><label for="cp">Precio del menú del día</label><input class="inp num" id="cp" type="number" inputmode="decimal" min="0" step="any" data-f="precioMenu" value="${esc(x.precioMenu)}" placeholder="$"><p class="hint">Plato + postre. Se usa para calcular la ganancia de cada día.</p></div>
+   <div class="field"><label for="cq">Menús pedidos en un día normal</label><input class="inp num" id="cq" type="number" inputmode="numeric" min="0" data-f="pedidosDefault" value="${esc(x.pedidosDefault)}"><p class="hint">Si un día no cargás los pedidos, la lista de compras usa este número.</p></div>
+   <div class="field"><label for="co">Objetivo de costo (%)</label><input class="inp num" id="co" type="number" inputmode="numeric" min="1" max="100" data-f="objetivo" value="${esc(x.objetivo)}"><p class="hint">Qué parte del precio querés que se vaya en materia prima. En gastronomía se suele apuntar a 30–35%.</p></div>
+   ${ej?`<div class="summary"><p class="small">Hay datos de ejemplo cargados (insumos, recetas y menú). Cuando empieces con los tuyos, podés borrarlos.</p>${delBtn('borrarEjemplos','Borrar datos de ejemplo')}</div>`:''}`,
+   foot:`<button class="btn" data-act="guardarConfig">Guardar</button>`};
+},{});
+
+/* copiar mes */
+SHEETS.copiar=Object.assign(s=>{const prev=mesMas(UI.mes,-1);const src=habilesMes(prev).filter(f=>{const d=getDia(f);return d&&!d.cerrado&&(d.plato||d.postre)});
+  const dest=habilesMes(UI.mes).filter(f=>!getDia(f));
+  return {title:'Copiar mes anterior',
+   body:`<p>Se copian los ${src.length} días con menú de <b>${mesNombre(prev)}</b>, en el mismo orden, a los <b>${dest.length}</b> días vacíos de <b>${mesNombre(UI.mes)}</b>.</p><p class="hint">Los días que ya cargaste no se tocan. Los menús pedidos no se copian.</p>`,
+   foot:`<button class="btn ghost" data-act="close">Cancelar</button><button class="btn" data-act="hacerCopia" ${!src.length||!dest.length?'disabled':''}>Copiar</button>`};
+},{});
+
+/* compartir */
+SHEETS.share=Object.assign(s=>({title:'Exportar menú',
+  body:`<section class="stack"><p class="eyebrow">Imagen para las familias</p>${s.url?`<img class="shareimg" src="${s.url}" alt="Menú de ${mesNombre(UI.mes)}"><p class="hint">En el celular también podés mantener apretada la imagen para guardarla o compartirla por WhatsApp.</p>`:'<p class="muted">Armando la imagen…</p>'}
+   ${downloads?`<button class="btn" data-act="bajarImg" ${s.url?'':'disabled'}>Guardar imagen</button>`:''}</section>
+   <section class="stack"><p class="eyebrow">Excel</p>
+   ${downloads?`<button class="btn ghost" data-act="excel" data-v="familias"><span style="display:block">Excel para las familias</span><span class="small muted" style="font-weight:400">Hojas Calendario y Lista · sin precios ni costos</span></button>
+   <button class="btn ghost" data-act="excel" data-v="interno"><span style="display:block">Excel interno</span><span class="small muted" style="font-weight:400">Con menús pedidos, costos y ganancia de cada día</span></button>`:'<p class="hint">La descarga de archivos no está disponible en esta vista.</p>'}</section>`}),{});
+
+/* ---------- Excel ---------- */
+const r2=n=>n!=null&&isFinite(n)?Math.round(n*100)/100:null;
+const serialXL=f=>{const [y,m,d]=f.split('-').map(Number);return (Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/86400000};
+function hojaCalendario(m,interno){
+  const [y,mm]=m.split('-').map(Number);const c=cfg();
+  const rows=[[`Menú de ${MESES[mm-1]} ${y}`],[c.nombre||''],[],['','Lunes','Martes','Miércoles','Jueves','Viernes']];
+  for(const wk of semanasDelMes(m)){
+    const D=wk.map(f=>f?getDia(f):null),I=wk.map(f=>f?infoDia(f):null);
+    rows.push(['',...wk.map(f=>f?`${cap(DIAS3[parseD(f).getDay()])} ${parseD(f).getDate()}/${mm}`:'')]);
+    rows.push(['Plato',...wk.map((f,i)=>!f?'':D[i]?.cerrado?motivoDe(D[i]):I[i]?.p?.nombre||'')]);
+    rows.push(['Postre',...wk.map((f,i)=>!f||D[i]?.cerrado?'':I[i]?.q?.nombre||'')]);
+    if(interno){
+      rows.push(['Menús pedidos',...wk.map((f,i)=>I[i]&&!I[i].cerrado&&I[i].pedidos?I[i].pedidos:'')]);
+      rows.push(['Costo por menú',...wk.map((f,i)=>I[i]&&!I[i].cerrado?(I[i].ok?r2(I[i].costo):'Sin costear'):'')]);
+    }
+    rows.push([]);
+  }
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:16},{wch:30},{wch:30},{wch:30},{wch:30},{wch:30}];
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:5}},{s:{r:1,c:0},e:{r:1,c:5}}];
+  if(interno)for(const k of Object.keys(ws))if(k[0]!=='!'&&typeof ws[k].v==='number'&&rows[XLSX.utils.decode_cell(k).r]?.[0]==='Costo por menú')ws[k].z='"$"#,##0.00';
+  return ws;
+}
+function hojaLista(m,interno){
+  const c=cfg();const head=['Fecha','Día','Plato','Postre'];
+  if(interno)head.push('Estado','Menús pedidos','Costo plato','Costo postre','Costo por menú','Precio del menú','Ganancia por menú','Ganancia del día');
+  const rows=[head];let tp=0,tg=0,sc=0,nc=0;
+  for(const f of habilesMes(m)){
+    const d=getDia(f),i=infoDia(f);const fecha=parseD(f);
+    const row=[serialXL(f),cap(DIAS[fecha.getDay()])];
+    if(d?.cerrado){row.push(motivoDe(d),'');if(interno)row.push(motivoDe(d))}
+    else{row.push(i?.p?.nombre||'',i?.q?.nombre||'');
+      if(interno){
+        if(!i)row.push('Sin menú');
+        else{const gm=c.precioMenu>0&&i.ok?c.precioMenu-i.costo:null;
+          row.push(i.ok?'Costeado':'Sin costear',i.pedidos||null,r2(i.p?.v),r2(i.q?.v),i.ok?r2(i.costo):null,c.precioMenu||null,r2(gm),gm!=null&&i.pedidos?r2(gm*i.pedidos):null);
+          tp+=i.pedidos||0;if(i.ok){sc+=i.costo;nc++;if(gm!=null&&i.pedidos)tg+=gm*i.pedidos}}
+      }}
+    rows.push(row);
+  }
+  if(interno){rows.push([]);rows.push(['Total del mes','','','','',tp,null,null,nc?r2(sc/nc):null,null,null,r2(tg)]);rows.push(['','','','','','menús','','','costo promedio','','','ganancia estimada'])}
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:12},{wch:11},{wch:30},{wch:28},...(interno?[{wch:12},{wch:14},{wch:12},{wch:12},{wch:15},{wch:15},{wch:17},{wch:17}]:[])];
+  for(const k of Object.keys(ws)){if(k[0]==='!')continue;const a=XLSX.utils.decode_cell(k);const cell=ws[k];
+    if(a.c===0&&a.r>0&&typeof cell.v==='number'&&a.r<=habilesMes(m).length)cell.z='dd/mm/yyyy';
+    else if(interno&&typeof cell.v==='number'&&a.r>0&&a.c>=6)cell.z='"$"#,##0.00';}
+  ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:habilesMes(m).length,c:head.length-1}})};
+  return ws;
+}
+async function exportarExcel(tipo){
+  if(!window.XLSX){toast('No se pudo preparar el Excel. Revisá la conexión y probá de nuevo.');return}
+  if(!downloads)return;
+  const m=UI.mes,interno=tipo==='interno';const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,hojaCalendario(m,interno),'Calendario');
+  XLSX.utils.book_append_sheet(wb,hojaLista(m,interno),'Lista');
+  const buf=XLSX.write(wb,{type:'array',bookType:'xlsx'});
+  const name=`menu-${MESES[+m.slice(5)-1]}-${m.slice(0,4)}${interno?'-interno':''}.xlsx`;
+  try{await downloads.save({filename:name,data:new Blob([buf])});toast('Excel guardado')}
+  catch(e){if(e?.code!=='declined')toast('No se pudo guardar el Excel.')}
+}
+
+/* ---------- carga rápida de insumos ---------- */
+function parseNum(t){t=String(t??'').replace(/[$\s]/g,'');if(!t)return NaN;if(t.includes(',')){t=t.replace(/\./g,'').replace(',','.')}else if(/^\d{1,3}(\.\d{3})+$/.test(t))t=t.replace(/\./g,'');return parseFloat(t)}
+const UNI_ALIAS={kg:'kg',kgs:'kg',kilo:'kg',kilos:'kg',g:'g',gr:'g',grs:'g',gramo:'g',gramos:'g',l:'l',lt:'l',lts:'l',litro:'l',litros:'l',ml:'ml',cc:'ml',u:'u',un:'u',uni:'u',unid:'u',ud:'u',uds:'u',unidad:'u',unidades:'u',docena:'doc',docenas:'doc'};
+const parseUni=t=>UNI_ALIAS[String(t||'').trim().toLowerCase().replace(/\.$/,'')]||null;
+function parseCat(t){t=String(t||'').trim().toLowerCase();if(!t)return null;return CATEGORIAS.find(c=>c.toLowerCase()===t)||CATEGORIAS.find(c=>c.toLowerCase().startsWith(t.slice(0,4)))||null}
+const filaVacia=()=>({nombre:'',cantidad:'1',unidad:'kg',precio:'',categoria:'Almacén',venta:''});
+function parsePegado(txt){
+  const out=[];
+  for(let l of String(txt).split(/\r?\n/)){l=l.trim();if(!l)continue;
+    let cols=l.includes('\t')?l.split('\t'):l.split(/[;|]/);cols=cols.map(c=>c.trim());
+    let nombre,cant,uni,precio,cat,venta;
+    if(cols.length===1){const m=/^(.+?)\s+(\d+(?:[.,]\d+)?)\s*([a-zA-Záéíóú.]+)\s+\$?\s*([\d.,]+)$/.exec(l);if(!m)continue;[,nombre,cant,uni,precio]=m}
+    else{nombre=cols[0];const m=/^([\d.,]+)\s*([a-zA-Záéíóú.]+)$/.exec(cols[1]||'');
+      if(m){cant=m[1];uni=m[2];precio=cols[2];cat=cols[3];venta=cols[4]}else{cant=cols[1];uni=cols[2];precio=cols[3];cat=cols[4];venta=cols[5]}}
+    if(!nombre||/^(nombre|insumo|producto)$/i.test(nombre))continue;
+    let u=parseUni(uni),c=parseNum(cant);if(u==='doc'){u='u';c=c*12}
+    out.push({nombre,cantidad:isFinite(c)?String(c):'',unidad:u||'kg',precio:isFinite(parseNum(precio))?String(parseNum(precio)):'',categoria:parseCat(cat)||'Almacén',venta:isFinite(parseNum(venta))?String(parseNum(venta)):'',_uniDudosa:!u&&!!uni});
+  }
+  return out;
+}
+const buscarInsumo=n=>{const k=n.trim().toLowerCase();return Object.values(S.insumos).find(x=>x.nombre.trim().toLowerCase()===k)};
+function estadoFila(r){
+  if(!r.nombre.trim())return null;
+  if(!(parseNum(r.cantidad)>0))return {cls:'warn',t:'Falta la cantidad'};
+  if(!(parseNum(r.precio)>0))return {cls:'warn',t:'Falta el precio'};
+  const ex=buscarInsumo(r.nombre);const pu=parseNum(r.precio)/parseNum(r.cantidad);
+  if(ex)return {cls:'sun',t:`Ya existe: se actualiza a ${money(pu)} por ${r.unidad}`};
+  return {cls:'ok',t:`Nuevo · ${money(pu)} por ${r.unidad}${r._uniDudosa?' · revisá la unidad':''}`};
+}
+SHEETS.masiva=Object.assign(s=>{const d=s.d;
+  const rows=d.rows.map((r,i)=>`<div class="mrow">
+    <input class="inp" placeholder="Nombre (ej: Tallarines)" aria-label="Nombre" data-mrow="${i}" data-k="nombre" value="${esc(r.nombre)}">
+    <div class="g3"><input class="inp num" type="number" inputmode="decimal" min="0" step="any" aria-label="Cantidad que comprás" placeholder="Cant." data-mrow="${i}" data-k="cantidad" value="${esc(r.cantidad)}">
+     <select class="inp" aria-label="Unidad" data-mrow="${i}" data-k="unidad">${['kg','g','l','ml','u'].map(u=>opt(u,u==='u'?'unid.':u,r.unidad===u)).join('')}</select>
+     <input class="inp num" type="number" inputmode="decimal" min="0" step="any" aria-label="Precio" placeholder="Precio $" data-mrow="${i}" data-k="precio" value="${esc(r.precio)}"></div>
+    <div class="grid2"><select class="inp" aria-label="Categoría" data-mrow="${i}" data-k="categoria">${CATEGORIAS.map(c=>opt(c,c,r.categoria===c)).join('')}</select>
+     <input class="inp num" type="number" inputmode="decimal" min="0" step="any" aria-label="Precio de venta si lo revendés" placeholder="Venta $ (opcional)" data-mrow="${i}" data-k="venta" value="${esc(r.venta)}"></div>
+    <span class="mst" id="mst-${i}"></span></div>`).join('');
+  return {title:'Carga rápida de insumos',
+   body:`<p class="small muted">Completá una fila por insumo: cómo lo comprás y cuánto pagás. Si ya existe uno con el mismo nombre, se actualiza su precio. Lo que vendés tal cual lleva precio de venta.</p>
+   <details class="paste"><summary>Pegar una lista desde Excel</summary>
+    <div class="stack"><p class="hint">Copiá las columnas de Excel en este orden: <b>Nombre · Cantidad · Unidad · Precio · Categoría · Precio de venta</b> (las dos últimas son opcionales). También sirve una línea por insumo así: <b>Tallarines 1 kg 300</b>.</p>
+    <textarea class="inp" id="pegar" data-f="pegar" placeholder="Tallarines	1	kg	300	Almacén&#10;Cebolla	1	kg	55	Verdulería&#10;Jugo 200 ml	12	u	300	Bebidas	50">${esc(d.pegar)}</textarea>
+    <button class="btn ghost sm" data-act="masPegar">Pasar a la tabla</button></div></details>
+   <div class="stack">${rows}</div>
+   <button class="btn ghost sm" data-act="masFilas">+ Agregar 5 filas</button>`,
+   foot:`<button class="btn ghost" data-act="close">Cancelar</button><button class="btn" id="masSave" data-act="masGuardar">Guardar</button>`};
+},{calc(s){let ok=0,bad=0;s.d.rows.forEach((r,i)=>{const el=$('#mst-'+i);const e=estadoFila(r);if(e){if(e.cls==='warn')bad++;else ok++}
+  if(el){el.textContent=e?e.t:'';el.style.color=e?(e.cls==='warn'?'var(--warn)':e.cls==='sun'?'var(--ink)':'var(--ok)'):''}});
+  const b=$('#masSave');if(b){b.textContent=ok?`Guardar ${ok} insumo${ok>1?'s':''}`:'Guardar';b.disabled=!ok}
+  s.ok=ok;s.bad=bad;}});
+
+/* ---------- imagen del menú ---------- */
+function wrapLines(ctx,text,maxW,maxLines){const words=String(text).split(/\s+/);const lines=[];let cur='';
+  for(const w of words){const t=cur?cur+' '+w:w;if(ctx.measureText(t).width<=maxW)cur=t;else{if(cur)lines.push(cur);cur=w}if(lines.length===maxLines)break}
+  if(lines.length<maxLines&&cur)lines.push(cur);if(lines.length===maxLines&&words.join(' ')!==lines.join(' ')){let l=lines[maxLines-1];while(ctx.measureText(l+'…').width>maxW&&l.length)l=l.slice(0,-1);lines[maxLines-1]=l+'…'}return lines.slice(0,maxLines)}
+async function menuImagen(m){
+  try{await document.fonts?.ready}catch(e){}
+  const weeks=semanasDelMes(m),W=1200,P=48,HEAD=230,CW=(W-P*2-4*12)/5,CH=200,G=12;
+  const H=HEAD+weeks.length*(CH+G)+P+40;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  x.fillStyle='#F7F8F3';x.fillRect(0,0,W,H);x.fillStyle='#2E6A4E';x.fillRect(0,0,W,16);
+  x.fillStyle='#1C2620';x.font='800 64px "Bricolage Grotesque", sans-serif';x.fillText('Menú de '+MESES[+m.slice(5)-1],P,110);
+  x.font='400 28px "Atkinson Hyperlegible", sans-serif';x.fillStyle='#5B6860';x.fillText((cfg().nombre||'Cantina')+' · '+m.slice(0,4),P,152);
+  x.font='700 22px "Atkinson Hyperlegible", sans-serif';['LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES'].forEach((d,i)=>x.fillText(d,P+i*(CW+G)+4,HEAD-20));
+  weeks.forEach((wk,wi)=>wk.forEach((f,di)=>{const cx=P+di*(CW+G),cy=HEAD+wi*(CH+G);
+    if(!f)return;const d=getDia(f);x.fillStyle=d?.cerrado?'#E9EDE4':'#FFFFFF';x.strokeStyle='#D8DFD4';x.lineWidth=2;x.beginPath();x.roundRect?x.roundRect(cx,cy,CW,CH,16):x.rect(cx,cy,CW,CH);x.fill();x.stroke();
+    x.fillStyle='#2E6A4E';x.font='800 30px "Bricolage Grotesque", sans-serif';x.fillText(parseD(f).getDate(),cx+16,cy+42);
+    if(!d)return;if(d.cerrado){x.fillStyle='#5B6860';x.font='400 22px "Atkinson Hyperlegible", sans-serif';wrapLines(x,motivoDe(d),CW-32,2).forEach((l,i)=>x.fillText(l,cx+16,cy+82+i*28));return}
+    const p=itemMenu(d.plato),q=itemMenu(d.postre);let y=cy+80;
+    x.fillStyle='#1C2620';x.font='700 23px "Atkinson Hyperlegible", sans-serif';for(const l of wrapLines(x,p?.nombre||'',CW-32,3)){x.fillText(l,cx+16,y);y+=28}
+    if(q){x.fillStyle='#8A5A10';x.font='400 20px "Atkinson Hyperlegible", sans-serif';const ls=wrapLines(x,'Postre: '+q.nombre,CW-32,2);let yy=Math.max(y+6,cy+CH-18-25*ls.length);for(const l of ls){x.fillText(l,cx+16,yy);yy+=25}}
+  }));
+  return await new Promise(res=>cv.toBlob(b=>res(b),'image/png'));
+}
+
+/* ---------- acciones ---------- */
+function escalarIngs(d,f){for(const it of d.ingredientes||[]){if(!(+it.cantidad>0)||!U[it.unidad])continue;const n=normQ((+it.cantidad)*f,it.unidad);it.cantidad=n.cantidad;it.unidad=n.unidad}}
+function nuevoDraftDia(f){const d=getDia(f)||{};const s=k=>d[k]?.rid?'r:'+d[k].rid:d[k]?.texto?'txt':'';
+  const mt=(d.nota||'').trim();return {fecha:f,cerrado:!!d.cerrado,motivoSel:!d.cerrado||!mt||MOTIVOS.includes(mt)?(mt||'Feriado'):'Otro',nota:MOTIVOS.includes(mt)?'':mt,pedidos:d.pedidos??'',platoSel:s('plato'),platoTxt:d.plato?.texto||'',postreSel:s('postre'),postreTxt:d.postre?.texto||''}}
+async function setDia(f,val){const m=f.slice(0,7);const doc=clone(S.menus[m])||{dias:{}};doc.dias=doc.dias||{};if(val)doc.dias[f]=val;else delete doc.dias[f];await put('menu',m,doc)}
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2600)}
+
+const ACT={
+ close:closeSheet,
+ config(){openSheet('config',clone(cfg()))},
+ mes(b){UI.mes=mesMas(UI.mes,+b.dataset.n);render()},
+ cajaMes(b){UI.cajaMes=mesMas(UI.cajaMes,+b.dataset.n);render()},
+ recTipo(b){UI.recTipo=b.dataset.v;render()},
+ insFiltro(b){UI.insFiltro=b.dataset.v;render()},
+ compRango(b){UI.compRango=b.dataset.v;render()},
+ editDia(b){const f=b.dataset.f;openSheet('dia',nuevoDraftDia(f),{existe:!!getDia(f)})},
+ async guardarDia(){const d=SH.d;let val;
+  if(d.cerrado){const sel=d.motivoSel||'Feriado';val={cerrado:true,nota:sel==='Otro'?((d.nota||'').trim()||'Sin clases'):sel}}
+  else{const it=k=>d[k+'Sel']==='txt'?(d[k+'Txt'].trim()?{texto:d[k+'Txt'].trim()}:null):d[k+'Sel']?{rid:d[k+'Sel'].slice(2)}:null;
+   val={plato:it('plato'),postre:it('postre')};if(d.pedidos!==''&&d.pedidos!=null)val.pedidos=+d.pedidos;
+   if(!val.plato&&!val.postre&&val.pedidos==null)val=null;}
+  const f=d.fecha;closeSheet();try{await setDia(f,val);toast('Menú guardado')}catch(e){}},
+ async borrarDia(){if(!SH.armed){SH.armed=true;renderSheet();return}const f=SH.d.fecha;closeSheet();try{await setDia(f,null);toast('Día vaciado')}catch(e){}},
+ motivo(b){SH.d.motivoSel=b.dataset.v;renderSheet()},
+ copiarMes(){openSheet('copiar',{})},
+ async hacerCopia(){const prev=mesMas(UI.mes,-1);const src=habilesMes(prev).map(getDia).filter(d=>d&&!d.cerrado&&(d.plato||d.postre));
+  const dest=habilesMes(UI.mes).filter(f=>!getDia(f));const doc=clone(S.menus[UI.mes])||{dias:{}};doc.dias=doc.dias||{};
+  dest.forEach((f,i)=>{if(i<src.length){const s=src[i];doc.dias[f]={plato:clone(s.plato),postre:clone(s.postre)}}});
+  closeSheet();try{await put('menu',UI.mes,doc);toast('Menú copiado')}catch(e){}},
+ async compartir(){openSheet('share',{});const b=await menuImagen(UI.mes);if(!SH||SH.kind!=='share')return;SH.blob=b;SH.url=URL.createObjectURL(b);renderSheet()},
+ excel(b){exportarExcel(b.dataset.v)},
+ async bajarImg(){if(!SH?.blob||!downloads)return;try{await downloads.save({filename:`menu-${MESES[+UI.mes.slice(5)-1]}-${UI.mes.slice(0,4)}.png`,data:SH.blob});toast('Imagen guardada')}catch(e){if(e?.code!=='declined')toast('No se pudo guardar la imagen. Mantené apretada la imagen para guardarla.')}},
+ nuevaReceta(){openSheet('receta',{nombre:'',tipo:UI.tab==='recetas'?UI.recTipo:'plato',modo:'porcion',porciones:'',rinde:'',rindeUnidad:'l',ingredientes:[{ref:'',cantidad:'',unidad:'g'}]},{id:null})},
+ editReceta(b){const r=clone(S.recetas[b.dataset.id]);r.ingredientes=r.ingredientes||[];openSheet('receta',r,{id:b.dataset.id,base:r.modo==='tanda'?Math.max(1,+r.porciones||1):null})},
+ rSet(b){const k=b.dataset.k,v=b.dataset.v,d=SH.d;
+  if(k==='modo'&&v!==(d.modo==='tanda'?'tanda':'porcion')){
+    if(v==='tanda'){const n=Math.max(1,+d.porciones||+cfg().pedidosDefault||50);d.porciones=n;escalarIngs(d,n);SH.base=n;SH.aviso=`Las cantidades se multiplicaron por ${n} porciones.`}
+    else{const n=Math.max(1,+d.porciones||1);escalarIngs(d,1/n);SH.base=null;SH.aviso=`Las cantidades se dividieron por ${n} porciones.`}
+  }
+  d[k]=v;renderSheet()},
+ recalcOlla(){const d=SH.d;const nuevo=Math.max(1,+d.porciones||1),viejo=SH.base;if(!(viejo>0))return;escalarIngs(d,nuevo/viejo);SH.base=nuevo;SH.aviso=`Las cantidades se ajustaron para ${nuevo} porciones.`;renderSheet()},
+ agregarIng(){SH.d.ingredientes.push({ref:'',cantidad:'',unidad:'g'});renderSheet();const sels=document.querySelectorAll('.ing select[data-k="ref"]');sels[sels.length-1]?.focus()},
+ quitarIng(b){SH.d.ingredientes.splice(+b.dataset.i,1);renderSheet()},
+ async guardarReceta(){const r=SH.d;if(!r.nombre.trim()){toast('Poné un nombre a la receta');$('#rn')?.focus();return}
+  const out={nombre:r.nombre.trim(),tipo:r.tipo,ingredientes:(r.ingredientes||[]).filter(i=>i.ref&&+i.cantidad>0).map(i=>({ref:i.ref,cantidad:+i.cantidad,unidad:i.unidad})),actualizado:hoyISO()};
+  if(r.tipo==='preparacion'){out.rinde=+r.rinde||0;out.rindeUnidad=r.rindeUnidad||'l'}else{out.modo=r.modo==='tanda'?'tanda':'porcion';if(out.modo==='tanda')out.porciones=Math.max(1,+r.porciones||1)}
+  if(r.ejemplo)out.ejemplo=true;
+  const id=SH.id||uid();closeSheet();UI.recTipo=out.tipo;try{await put('recetas',id,out);toast('Receta guardada')}catch(e){}},
+ async borrarReceta(){if(!SH.armed){SH.armed=true;renderSheet();const u=usos('r:'+SH.id);if(u.length)toast('Ojo: se usa en '+u.join(', '));return}const id=SH.id;closeSheet();try{await del('recetas',id);toast('Receta borrada')}catch(e){}},
+ masiva(){openSheet('masiva',{rows:Array.from({length:5},filaVacia),pegar:''})},
+ masFilas(){for(let i=0;i<5;i++)SH.d.rows.push(filaVacia());renderSheet()},
+ masPegar(){const nuevas=parsePegado(SH.d.pegar||'');if(!nuevas.length){toast('No encontré filas para pasar. Revisá el formato.');return}
+  const llenas=SH.d.rows.filter(r=>r.nombre.trim());SH.d.rows=[...llenas,...nuevas];SH.d.pegar='';renderSheet();toast(`${nuevas.length} fila${nuevas.length>1?'s':''} lista${nuevas.length>1?'s':''} para revisar`)},
+ async masGuardar(){const filas=SH.d.rows.filter(r=>{const e=estadoFila(r);return e&&e.cls!=='warn'});if(!filas.length)return;
+  const saltadas=SH.bad||0;closeSheet();const h=hoyISO();let n=0;
+  try{for(const r of filas){const ex=buscarInsumo(r.nombre);const cant=parseNum(r.cantidad),pr=parseNum(r.precio),vt=parseNum(r.venta);
+    let out;
+    if(ex){out=clone(ex);const cambio=+ex.precio!==pr||+ex.cantidad!==cant||ex.unidad!==r.unidad;Object.assign(out,{cantidad:cant,unidad:r.unidad,precio:pr});
+      if(vt>0){out.reventa=true;out.precioVenta=vt}
+      if(cambio){out.historial=out.historial||[];const last=out.historial[out.historial.length-1];if(last&&last.fecha===h)out.historial.pop();out.historial.push({fecha:h,precio:pr,cantidad:cant,unidad:r.unidad})}}
+    else{const id=uid();out={id,nombre:r.nombre.trim(),categoria:r.categoria||'Otros',cantidad:cant,unidad:r.unidad,precio:pr,merma:0,reventa:vt>0,precioVenta:vt>0?vt:0,historial:[{fecha:h,precio:pr,cantidad:cant,unidad:r.unidad}]}}
+    await put('insumos',out.id,out);n++}
+   toast(`${n} insumo${n>1?'s':''} guardado${n>1?'s':''}${saltadas?` · ${saltadas} fila${saltadas>1?'s':''} incompleta${saltadas>1?'s':''} sin guardar`:''}`)}
+  catch(e){if(n)toast(`Se guardaron ${n}. Después hubo un error: probá de nuevo con el resto.`)}},
+ nuevoInsumo(){openSheet('insumo',{nombre:'',categoria:'Almacén',cantidad:1,unidad:'kg',precio:'',merma:'',reventa:UI.insFiltro==='rv',precioVenta:''},{id:null})},
+ editInsumo(b){const x=clone(S.insumos[b.dataset.id]);openSheet('insumo',x,{id:b.dataset.id,orig:clone(x)})},
+ async guardarInsumo(){const x=SH.d;if(!x.nombre.trim()){toast('Poné un nombre al insumo');return}if(!(+x.cantidad>0)||!(+x.precio>0)){toast('Completá cantidad y precio');return}
+  const id=SH.id||uid();const out={id,nombre:x.nombre.trim(),categoria:x.categoria||'Otros',cantidad:+x.cantidad,unidad:x.unidad,precio:+x.precio,merma:+x.merma||0,reventa:!!x.reventa,precioVenta:x.reventa?(+x.precioVenta||0):0,historial:clone(x.historial)||[]};
+  if(x.ejemplo)out.ejemplo=true;
+  const o=SH.orig;const cambio=!o||+o.precio!==out.precio||+o.cantidad!==out.cantidad||o.unidad!==out.unidad;
+  if(cambio){const h=hoyISO();const last=out.historial[out.historial.length-1];if(last&&last.fecha===h)out.historial.pop();out.historial.push({fecha:h,precio:out.precio,cantidad:out.cantidad,unidad:out.unidad});if(out.historial.length>24)out.historial=out.historial.slice(-24)}
+  // si cambió la dimensión, avisar a recetas
+  const dimCambio=o&&U[o.unidad].d!==U[out.unidad].d;
+  closeSheet();try{await put('insumos',id,out);toast(dimCambio?'Guardado. Revisá las recetas que lo usan: cambió el tipo de unidad':'Insumo guardado')}catch(e){}},
+ async borrarInsumo(){if(!SH.armed){SH.armed=true;renderSheet();const u=usos('i:'+SH.id);if(u.length)toast('Ojo: se usa en '+u.join(', '));return}const id=SH.id;closeSheet();try{await del('insumos',id);toast('Insumo borrado')}catch(e){}},
+ nuevoMov(){openSheet('mov',{tipo:'venta',fecha:hoyISO(),monto:'',concepto:''},{id:null})},
+ editMov(b){const m=UI.cajaMes;const x=(S.caja[m]?.movs||[]).find(v=>v.id===b.dataset.id);if(x)openSheet('mov',clone(x),{id:x.id,mes:m})},
+ mSet(b){SH.d.tipo=b.dataset.v;renderSheet()},
+ async guardarMov(){const x=SH.d;if(!(+x.monto>0)){toast('Poné un monto');return}if(!x.fecha){toast('Elegí la fecha');return}
+  const id=SH.id||uid();const nuevoMes=x.fecha.slice(0,7);const viejoMes=SH.mes;const mov={id,tipo:x.tipo,fecha:x.fecha,monto:+x.monto,concepto:(x.concepto||'').trim()};closeSheet();
+  try{if(viejoMes&&viejoMes!==nuevoMes){const dv=clone(S.caja[viejoMes]);dv.movs=dv.movs.filter(v=>v.id!==id);await put('caja',viejoMes,dv)}
+   const d=clone(S.caja[nuevoMes])||{movs:[]};d.movs=(d.movs||[]).filter(v=>v.id!==id);d.movs.push(mov);await put('caja',nuevoMes,d);UI.cajaMes=nuevoMes;toast('Movimiento guardado')}catch(e){}},
+ async borrarMov(){if(!SH.armed){SH.armed=true;renderSheet();return}const m=SH.mes,id=SH.id;closeSheet();const d=clone(S.caja[m]);d.movs=d.movs.filter(v=>v.id!==id);try{await put('caja',m,d);toast('Movimiento borrado')}catch(e){}},
+ async guardarConfig(){const x=SH.d;const out={nombre:(x.nombre||'').trim()||'Cantina',precioMenu:+x.precioMenu||0,pedidosDefault:+x.pedidosDefault||0,objetivo:+x.objetivo||35};closeSheet();try{await put('config','general',out);toast('Ajustes guardados')}catch(e){}},
+ async borrarEjemplos(){if(!SH.armed){SH.armed=true;renderSheet();return}closeSheet();
+  try{for(const [id,x] of Object.entries(S.insumos))if(x.ejemplo)await del('insumos',id);
+   for(const [id,x] of Object.entries(S.recetas))if(x.ejemplo)await del('recetas',id);
+   for(const [id,x] of Object.entries(S.menus))if(x.ejemplo)await del('menu',id);
+   for(const [id,x] of Object.entries(S.caja))if(x.ejemplo)await del('caja',id);
+   toast('Datos de ejemplo borrados')}catch(e){}},
+ async copiarLista(){const [a,b]=rangoCompras();const N=necesidades(a,b);const lines=[`Compras del ${a.split('-').reverse().join('/')} al ${b.split('-').reverse().join('/')}`];
+  for(const k of CATEGORIAS){const its=Object.entries(N.acc).map(([id,q])=>({x:S.insumos[id],q})).filter(o=>o.x&&(o.x.categoria||'Otros')===k);if(!its.length)continue;lines.push('',k.toUpperCase());
+   for(const {x,q} of its){const u=U[x.unidad];const e=q/(1-(+x.merma||0)/100)/u.f;lines.push(`- ${x.nombre}: ${x.unidad==='u'?Math.ceil(e)+' u':qty(Math.ceil(e*10)/10)+' '+x.unidad}`)}}
+  const txt=lines.join('\n');try{await navigator.clipboard.writeText(txt);toast('Lista copiada. Pegala en WhatsApp o Notas.')}catch(e){SH={kind:'texto',d:{}};document.body.classList.add('lock');$('#sheet').hidden=false;$('#sheetPanel').innerHTML=`<div class="sh-head"><h2>Lista de compras</h2><button class="iconbtn" data-act="close" aria-label="Cerrar">${ico('x')}</button></div><div class="sh-body"><textarea class="inp" rows="14" readonly>${esc(txt)}</textarea><p class="hint">Seleccioná el texto y copialo.</p></div>`;$('#sheetPanel textarea').select()}},
+};
+SHEETS.texto=()=>({title:'',body:''});
+
+/* ---------- eventos ---------- */
+document.addEventListener('click',e=>{
+  const tab=e.target.closest('[data-tab]');if(tab){UI.tab=tab.dataset.tab;lsSet('cant.tab',UI.tab);if(SH)closeSheet();render();window.scrollTo(0,0);return}
+  const b=e.target.closest('[data-act]');if(!b)return;const f=ACT[b.dataset.act];if(f){e.preventDefault();f(b)}
+});
+function val(t){if(t.type==='checkbox')return t.checked;return t.value}
+document.addEventListener('input',e=>{const t=e.target;
+  if(t.dataset.check){const ch=lsGet('cant.checks',{});const k=t.dataset.key;ch[k]=ch[k]||{};ch[k][t.dataset.check]=t.checked;
+    const keys=Object.keys(ch);if(keys.length>12)delete ch[keys[0]];lsSet('cant.checks',ch);t.closest('.check').classList.toggle('done',t.checked);return}
+  if(t.dataset.ui){UI[t.dataset.ui]=t.value;if(t.dataset.ui==='insQ'){$('#insList').innerHTML=insList()}else render();return}
+  if(!SH)return;
+  if(t.dataset.f!=null){SH.d[t.dataset.f]=val(t);if(t.dataset.f==='unidad'&&SH.kind==='insumo'){}if(t.dataset.rerender)renderSheet();else sheetCalc();return}
+  if(t.dataset.mrow!=null){SH.d.rows[+t.dataset.mrow][t.dataset.k]=t.value;if(t.dataset.k==='unidad')SH.d.rows[+t.dataset.mrow]._uniDudosa=false;sheetCalc();return}
+  if(t.dataset.ing!=null){const it=SH.d.ingredientes[+t.dataset.ing];it[t.dataset.k]=t.value;
+    if(t.dataset.k==='ref'){const info=refInfo(t.value);if(info&&(!U[it.unidad]||U[it.unidad].d!==info.dim))it.unidad=info.defU}
+    if(t.dataset.rerender)renderSheet();else sheetCalc();}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&SH)closeSheet()});
+
+/* ---------- arranque ---------- */
+render();
+(async()=>{
+  try{db=window.claude?.use?await window.claude.use('db'):null}catch(e){db=null}
+  try{downloads=window.claude?.use?await window.claude.use('downloads'):null}catch(e){downloads=null}
+  if(!db){modoLocal=true;loadLocal();S.ready=true;render();return}
+  const colls=['insumos','recetas','menu','caja','config'];let loaded=0;
+  for(const c of colls){let first=true;
+    db.collection(c).onSnapshot(snap=>{const o={};for(const d of snap.docs)if(d.exists)o[d.id]={...d.data(),...(c==='insumos'?{id:d.id}:{})};S[COLL_KEY[c]]=o;
+      if(first){first=false;loaded++;if(loaded===colls.length)S.ready=true}
+      scheduleRender();if(SH&&SH.kind!=='share')sheetCalc();},
+    err=>{if(first){first=false;loaded++;if(loaded===colls.length)S.ready=true}toast('No se pudieron leer algunos datos. Recargá la página.');scheduleRender()});}
+})();
+</script>
+
+</body></html>
